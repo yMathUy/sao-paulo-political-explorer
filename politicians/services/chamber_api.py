@@ -60,3 +60,35 @@ def get_sao_paulo_deputies() -> list[dict[str, Any]]:
     )
 
     return deputies
+
+def get_deputy_by_id(deputy_id: int) -> dict[str, Any]:
+    cache_key = f"federal_deputy_{deputy_id}"
+
+    cached_deputy = cache.get(cache_key)
+
+    if cached_deputy is not None:
+        return cached_deputy
+
+    try:
+        response = requests.get(
+            f"{CHAMBER_API_URL}/deputados/{deputy_id}",
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "SaoPauloPoliticalExplorer/1.0",
+            },
+            timeout=(3.05, 15),
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+    except (requests.RequestException, ValueError) as error:
+        raise ChamberAPIError(
+            "The politician profile is temporarily unavailable."
+        ) from error
+
+    deputy = data.get("dados", {})
+
+    cache.set(cache_key, deputy, DEPUTIES_CACHE_TIMEOUT)
+
+    return deputy

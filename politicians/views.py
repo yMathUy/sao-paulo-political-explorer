@@ -1,11 +1,12 @@
-from django.core.paginator import Paginator
+from django.http import Http404
 from django.shortcuts import render
+from django.core.paginator import Paginator
 
 from .services.chamber_api import (
     ChamberAPIError,
+    get_deputy_by_id,
     get_sao_paulo_deputies,
 )
-
 
 def politicians_list(request):
     searched_name = request.GET.get("name", "").strip()
@@ -62,5 +63,33 @@ def politicians_list(request):
     return render(
         request,
         "politicians/politicians_list.html",
+        context,
+    )
+
+def politician_detail(request, deputy_id):
+    try:
+        deputy = get_deputy_by_id(deputy_id)
+    except ChamberAPIError as error:
+        context = {
+            "error_message": str(error),
+        }
+
+        return render(
+            request,
+            "politicians/politician_detail.html",
+            context,
+            status=503,
+        )
+
+    if not deputy:
+        raise Http404("Politician not found.")
+
+    context = {
+        "deputy": deputy,
+    }
+
+    return render(
+        request,
+        "politicians/politician_detail.html",
         context,
     )

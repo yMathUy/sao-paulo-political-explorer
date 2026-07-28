@@ -164,7 +164,10 @@
 
             <div class="politicians-grid">
                 {% for deputy in page_obj %}
-                    <article class="politician-card">
+                  <a
+                     class="politician-card politician-card-link"
+                    href="{% url 'politicians:detail' deputy.id %}"
+                    >
                         <div class="politician-photo-wrapper">
                             <img
                                 class="politician-photo"
@@ -206,7 +209,7 @@
                                 </span>
                             </div>
                         </div>
-                    </article>
+                </a>
                 {% empty %}
                     {% if not error_message %}
                         <div class="empty-state">

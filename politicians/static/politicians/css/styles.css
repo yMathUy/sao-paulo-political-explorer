@@ -538,3 +538,74 @@ a {
         flex-direction: column;
     }
 }
+
+.politician-card-link {
+    color: inherit;
+    display: block;
+    text-decoration: none;
+}
+
+.politician-detail-page {
+    margin-top: 0;
+    padding-top: 48px;
+}
+
+.back-link {
+    color: var(--primary);
+    display: inline-block;
+    font-weight: 700;
+    margin-bottom: 28px;
+    text-decoration: none;
+}
+
+.profile-header {
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    display: flex;
+    gap: 36px;
+    padding: 36px;
+}
+
+.profile-photo {
+    background: #dce5ec;
+    border-radius: 16px;
+    height: 280px;
+    object-fit: cover;
+    object-position: center top;
+    width: 230px;
+}
+
+.profile-header h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: -0.04em;
+    margin: 8px 0;
+}
+
+.profile-party {
+    color: var(--text-soft);
+    font-size: 18px;
+    margin-bottom: 18px;
+}
+
+.eyebrow-dark {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+    .profile-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 24px;
+    }
+
+    .profile-photo {
+        height: auto;
+        width: 100%;
+    }
+}

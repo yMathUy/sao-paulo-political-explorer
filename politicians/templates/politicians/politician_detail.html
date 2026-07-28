@@ -1,0 +1,80 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% if deputy %}
+            {{ deputy.ultimoStatus.nome }}
+        {% else %}
+            Politician Profile
+        {% endif %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'politicians/css/styles.css' %}"
+    >
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <a class="brand" href="/">
+                <span class="brand-mark">SP</span>
+
+                <span>Political Explorer</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="page-container politician-detail-page">
+        {% if error_message %}
+            <div class="alert">
+                {{ error_message }}
+            </div>
+        {% else %}
+            <a class="back-link" href="/">
+                ← Back to politicians
+            </a>
+
+            <section class="profile-header">
+                <img
+                    class="profile-photo"
+                    src="{{ deputy.ultimoStatus.urlFoto }}"
+                    alt="Official portrait of {{ deputy.ultimoStatus.nome }}"
+                >
+
+                <div>
+                    <span class="eyebrow-dark">
+                        Federal Deputy
+                    </span>
+
+                    <h1>
+                        {{ deputy.ultimoStatus.nome }}
+                    </h1>
+
+                    <p class="profile-party">
+                        {{ deputy.ultimoStatus.siglaPartido }}
+                        —
+                        {{ deputy.ultimoStatus.siglaUf }}
+                    </p>
+
+                    {% if deputy.ultimoStatus.email %}
+                        <a href="mailto:{{ deputy.ultimoStatus.email }}">
+                            {{ deputy.ultimoStatus.email }}
+                        </a>
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>
