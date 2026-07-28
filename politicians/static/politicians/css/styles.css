@@ -818,3 +818,121 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+.propositions-section {
+    margin-top: 34px;
+}
+
+.propositions-summary {
+    align-items: center;
+    background: var(--primary-soft);
+    border: 1px solid rgba(47, 116, 159, 0.18);
+    border-radius: 14px;
+    display: flex;
+    gap: 28px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding: 20px 22px;
+}
+
+.propositions-summary > div {
+    align-items: baseline;
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.propositions-summary strong {
+    color: var(--primary);
+    font-size: 30px;
+    letter-spacing: -0.04em;
+}
+
+.propositions-summary span,
+.propositions-summary p {
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.propositions-summary p {
+    max-width: 620px;
+}
+
+.propositions-list {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.proposition-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    min-height: 210px;
+    padding: 22px;
+}
+
+.proposition-header {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}
+
+.proposition-type {
+    background: var(--primary);
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 8px;
+}
+
+.proposition-header strong {
+    font-size: 15px;
+}
+
+.proposition-card p {
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 16px 0;
+}
+
+.proposition-card a {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 750;
+    margin-top: auto;
+    text-decoration: none;
+}
+
+.proposition-card a:hover {
+    text-decoration: underline;
+}
+
+.empty-propositions {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: 15px;
+    grid-column: 1 / -1;
+    padding: 34px;
+    text-align: center;
+}
+
+.empty-propositions p {
+    color: var(--text-soft);
+    margin-top: 6px;
+}
+
+@media (max-width: 700px) {
+    .propositions-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .propositions-list {
+        grid-template-columns: 1fr;
+    }
+}

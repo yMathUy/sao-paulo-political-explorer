@@ -226,6 +226,81 @@
     {% endif %}
 </section>
 
+<section class="propositions-section">
+    <div class="profile-section-heading">
+        <span>Legislative activity</span>
+
+        <h2>
+            Propositions signed in {{ current_year }}
+        </h2>
+    </div>
+
+    {% if proposition_error %}
+        <div class="alert">
+            {{ proposition_error }}
+        </div>
+    {% else %}
+        <div class="propositions-summary">
+            <div>
+                <strong>
+                    {{ propositions_count }}
+                </strong>
+
+                <span>
+                    proposition{{ propositions_count|pluralize }}
+                    found
+                </span>
+            </div>
+
+            <p>
+                The list includes propositions where the deputy appears
+                as a signatory, which may include primary authorship,
+                coauthorship or support.
+            </p>
+        </div>
+
+        <div class="propositions-list">
+            {% for proposition in propositions %}
+                <article class="proposition-card">
+                    <div class="proposition-header">
+                        <span class="proposition-type">
+                            {{ proposition.siglaTipo }}
+                        </span>
+
+                        <strong>
+                            {{ proposition.siglaTipo }}
+                            {{ proposition.numero }}/{{ proposition.ano }}
+                        </strong>
+                    </div>
+
+                    <p>
+                        {{ proposition.ementa|default:"No summary available."|truncatechars:280 }}
+                    </p>
+
+                    {% if proposition.uri %}
+                        <a
+                            href="{{ proposition.uri }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View official record →
+                        </a>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <div class="empty-propositions">
+                    <h3>No propositions found</h3>
+
+                    <p>
+                        No signed propositions were returned for
+                        {{ current_year }}.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</section>
+
 <section class="office-section">
     <div class="profile-section-heading">
         <span>Institutional contact</span>

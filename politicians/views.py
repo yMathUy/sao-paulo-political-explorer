@@ -9,6 +9,7 @@ from .services.chamber_api import (
     get_sao_paulo_deputies,
     get_deputy_expenses,
     summarize_expenses,
+    get_deputy_propositions,
 )
 
 def politicians_list(request):
@@ -107,11 +108,26 @@ def politician_detail(request, deputy_id):
     except ChamberAPIError as error:
         expense_error = str(error)
 
+    proposition_error = None
+    propositions = []
+
+    try:
+        propositions = get_deputy_propositions(
+            deputy_id=deputy_id,
+            year=current_year,
+        )
+
+    except ChamberAPIError as error:
+        proposition_error = str(error)    
+
     context = {
         "deputy": deputy,
         "current_year": current_year,
         "expense_summary": expense_summary,
         "expense_error": expense_error,
+        "propositions": propositions[:6],
+        "propositions_count": len(propositions),
+        "proposition_error": proposition_error,
     }
 
     return render(

@@ -218,3 +218,78 @@ def summarize_expenses(
         "records_count": len(expenses),
         "top_categories": categories[:6],
     }
+PROPOSITIONS_CACHE_TIMEOUT = 60 * 60
+
+
+def get_deputy_propositions(
+    deputy_id: int,
+    year: int,
+) -> list[dict[str, Any]]:
+    """
+    Retrieve propositions signed by a deputy in a specific year.
+
+    The Chamber considers every signatory an author, including
+    coauthors and supporters.
+    """
+
+    cache_key = f"federal_deputy_{deputy_id}_propositions_{year}"
+
+    cached_propositions = cache.get(cache_key)
+
+    if cached_propositions is not None:
+        return cached_propositions
+
+    propositions: list[dict[str, Any]] = []
+    page = 1
+
+    try:
+        while True:
+            response = requests.get(
+                f"{CHAMBER_API_URL}/proposicoes",
+                params={
+                    "idDeputadoAutor": deputy_id,
+                    "ano": year,
+                    "pagina": page,
+                    "itens": 100,
+                },
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "SaoPauloPoliticalExplorer/1.0",
+                },
+                timeout=(3.05, 15),
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+            page_propositions = data.get("dados", [])
+            propositions.extend(page_propositions)
+
+            if len(page_propositions) < 100:
+                break
+
+            page += 1
+
+            if page > 20:
+                break
+
+    except (requests.RequestException, ValueError) as error:
+        raise ChamberAPIError(
+            "Proposition data is temporarily unavailable."
+        ) from error
+
+    propositions.sort(
+        key=lambda proposition: (
+            proposition.get("ano") or 0,
+            proposition.get("id") or 0,
+        ),
+        reverse=True,
+    )
+
+    cache.set(
+        cache_key,
+        propositions,
+        PROPOSITIONS_CACHE_TIMEOUT,
+    )
+
+    return propositions
