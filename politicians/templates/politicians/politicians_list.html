@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,49 +10,266 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="Explore public political data from the state of São Paulo."
+    >
+
     <title>São Paulo Political Explorer</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'politicians/css/styles.css' %}"
+    >
 </head>
 
 <body>
-    <header>
-        <h1>São Paulo Political Explorer</h1>
+    <header class="site-header">
+        <div class="header-container">
+            <a class="brand" href="/">
+                <span class="brand-mark">SP</span>
 
-        <p>
-            Explore public information about politicians and candidates
-            connected to the state of São Paulo.
-        </p>
+                <span>
+                    Political Explorer
+                </span>
+            </a>
 
-        <nav>
-            <a href="#">Federal Deputies</a>
-            <a href="#">Senators</a>
-            <a href="#">Governor</a>
-            <a href="#">Mayors</a>
-            <a href="#">Candidates</a>
-        </nav>
+            <nav class="main-navigation" aria-label="Main navigation">
+                <a class="active" href="/">Politicians</a>
+                <a href="#">Bills</a>
+                <a href="#">Votes</a>
+                <a href="#">Compare</a>
+                <a href="#">Methodology</a>
+            </nav>
+        </div>
     </header>
 
     <main>
-        <section>
-            <h2>Federal Deputies</h2>
+        <section class="hero">
+            <div class="hero-container">
+                <span class="eyebrow">
+                    Open political data
+                </span>
 
-            {% for deputy in deputies %}
-                <article>
-                    <img
-                        src="{{ deputy.urlFoto }}"
-                        alt="Official portrait of {{ deputy.nome }}"
-                        width="120"
-                    >
+                <h1>
+                    Understand who represents São Paulo.
+                </h1>
 
-                    <h3>{{ deputy.nome }}</h3>
+                <p>
+                    Search politicians, explore public records and understand
+                    political activity through clear and accessible data.
+                </p>
+            </div>
+        </section>
+
+        <section class="page-container">
+            <div class="category-navigation">
+                <button class="category-button active" type="button">
+                    Federal Deputies
+                </button>
+
+                <button class="category-button" type="button" disabled>
+                    Senators
+                </button>
+
+                <button class="category-button" type="button" disabled>
+                    Governor
+                </button>
+
+                <button class="category-button" type="button" disabled>
+                    Mayors
+                </button>
+
+                <button class="category-button" type="button" disabled>
+                    Candidates
+                </button>
+            </div>
+
+            <form class="search-panel" method="get">
+                <div class="search-field name-field">
+                    <label for="name">
+                        Politician name
+                    </label>
+
+                    <div class="input-container">
+                        <span class="search-icon" aria-hidden="true">
+                            &#128269;
+                        </span>
+
+                        <input
+                            id="name"
+                            name="name"
+                            type="search"
+                            placeholder="Search by name"
+                            value="{{ searched_name }}"
+                        >
+                    </div>
+                </div>
+
+                <div class="search-field">
+                    <label for="party">
+                        Political party
+                    </label>
+
+                    <select id="party" name="party">
+                        <option value="">
+                            All parties
+                        </option>
+
+                        {% for party in parties %}
+                            <option
+                                value="{{ party }}"
+                                {% if party == selected_party %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ party }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button class="search-button" type="submit">
+                    Search
+                </button>
+
+                {% if searched_name or selected_party %}
+                    <a class="clear-button" href="/">
+                        Clear
+                    </a>
+                {% endif %}
+            </form>
+
+            {% if error_message %}
+                <div class="alert" role="alert">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            <div class="results-header">
+                <div>
+                    <h2>Federal Deputies</h2>
 
                     <p>
-                        {{ deputy.siglaPartido }} — {{ deputy.siglaUf }}
+                        Representatives currently associated with São Paulo
+                        in the Chamber of Deputies.
                     </p>
-                </article>
-            {% empty %}
-                <p>No federal deputies were found.</p>
-            {% endfor %}
+                </div>
+
+                <span class="results-badge">
+                    {{ results_count }}
+                    result{{ results_count|pluralize }}
+                </span>
+            </div>
+
+            <div class="politicians-grid">
+                {% for deputy in page_obj %}
+                    <article class="politician-card">
+                        <div class="politician-photo-wrapper">
+                            <img
+                                class="politician-photo"
+                                src="{{ deputy.urlFoto }}"
+                                alt="Official portrait of {{ deputy.nome }}"
+                                width="360"
+                                height="270"
+                                loading="lazy"
+                                decoding="async"
+                            >
+
+                            <span class="position-badge">
+                                Federal Deputy
+                            </span>
+                        </div>
+
+                        <div class="politician-content">
+                            <div class="politician-heading">
+                                <h3>
+                                    {{ deputy.nome }}
+                                </h3>
+
+                                <span class="party-badge">
+                                    {{ deputy.siglaPartido }}
+                                </span>
+                            </div>
+
+                            <p class="politician-location">
+                                São Paulo, Brazil
+                            </p>
+
+                            <div class="politician-footer">
+                                <span>
+                                    Chamber of Deputies
+                                </span>
+
+                                <span class="profile-preview">
+                                    Profile coming soon
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    {% if not error_message %}
+                        <div class="empty-state">
+                            <h3>No politicians found</h3>
+
+                            <p>
+                                Try changing the name or political party filter.
+                            </p>
+
+                            <a href="/">
+                                Clear all filters
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+                <nav class="pagination" aria-label="Results pagination">
+                    {% if page_obj.has_previous %}
+                        <a
+                            href="?name={{ searched_name|urlencode }}&party={{ selected_party|urlencode }}&page={{ page_obj.previous_page_number }}"
+                        >
+                            Previous
+                        </a>
+                    {% else %}
+                        <span class="disabled">
+                            Previous
+                        </span>
+                    {% endif %}
+
+                    <span class="page-information">
+                        Page {{ page_obj.number }}
+                        of {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a
+                            href="?name={{ searched_name|urlencode }}&party={{ selected_party|urlencode }}&page={{ page_obj.next_page_number }}"
+                        >
+                            Next
+                        </a>
+                    {% else %}
+                        <span class="disabled">
+                            Next
+                        </span>
+                    {% endif %}
+                </nav>
+            {% endif %}
         </section>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>
+                Public data provided by official Brazilian government sources.
+            </p>
+
+            <p>
+                This project is independent and has no affiliation with
+                political parties or candidates.
+            </p>
+        </div>
+    </footer>
 </body>
 </html>
