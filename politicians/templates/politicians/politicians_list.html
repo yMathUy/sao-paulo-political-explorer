@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>São Paulo Political Explorer</title>
+</head>
+
+<body>
+    <header>
+        <h1>São Paulo Political Explorer</h1>
+
+        <p>
+            Explore public information about politicians and candidates
+            connected to the state of São Paulo.
+        </p>
+
+        <nav>
+            <a href="#">Federal Deputies</a>
+            <a href="#">Senators</a>
+            <a href="#">Governor</a>
+            <a href="#">Mayors</a>
+            <a href="#">Candidates</a>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Federal Deputies</h2>
+
+            {% for deputy in deputies %}
+                <article>
+                    <img
+                        src="{{ deputy.urlFoto }}"
+                        alt="Official portrait of {{ deputy.nome }}"
+                        width="120"
+                    >
+
+                    <h3>{{ deputy.nome }}</h3>
+
+                    <p>
+                        {{ deputy.siglaPartido }} — {{ deputy.siglaUf }}
+                    </p>
+                </article>
+            {% empty %}
+                <p>No federal deputies were found.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
