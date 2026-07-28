@@ -301,6 +301,80 @@
     {% endif %}
 </section>
 
+<section class="votes-section">
+    <div class="profile-section-heading">
+        <span>Voting activity</span>
+
+        <h2>
+            Nominal votes in {{ current_year }}
+        </h2>
+    </div>
+
+    <div class="votes-summary">
+        <strong>
+            {{ votes_count }}
+        </strong>
+
+        <span>
+            registered vote{{ votes_count|pluralize }}
+        </span>
+    </div>
+
+    <div class="votes-list">
+        {% for deputy_vote in recent_votes %}
+            <article class="vote-card">
+                <div class="vote-card-header">
+                    <div>
+                        <span class="vote-date">
+                            {{ deputy_vote.voting.voting_date|date:"M d, Y" }}
+                        </span>
+
+                        {% if deputy_vote.voting.organization_name %}
+                            <span class="vote-organization">
+                                {{ deputy_vote.voting.organization_name }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <span class="vote-value">
+                        {{ deputy_vote.vote }}
+                    </span>
+                </div>
+
+                <p>
+                    {{ deputy_vote.voting.description|default:"Voting description not available."|truncatechars:300 }}
+                </p>
+
+                {% if deputy_vote.voting.result %}
+                    <div class="vote-result">
+                        <span>Result</span>
+
+                        <strong>
+                            {{ deputy_vote.voting.result|truncatechars:180 }}
+                        </strong>
+                    </div>
+                {% endif %}
+            </article>
+        {% empty %}
+            <div class="empty-votes">
+                <h3>No nominal votes found</h3>
+
+                <p>
+                    No registered nominal votes were found for
+                    {{ current_year }}.
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <p class="votes-disclaimer">
+        This section shows nominal votes registered by the Chamber of
+        Deputies. The absence of a record does not necessarily indicate
+        that the deputy was absent, since not every voting process
+        produces an individual nominal vote.
+    </p>
+</section>
+
 <section class="office-section">
     <div class="profile-section-heading">
         <span>Institutional contact</span>

@@ -936,3 +936,135 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+.votes-section {
+    margin-top: 34px;
+}
+
+.votes-summary {
+    align-items: baseline;
+    background: var(--primary-soft);
+    border: 1px solid rgba(47, 116, 159, 0.18);
+    border-radius: 14px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 18px 22px;
+}
+
+.votes-summary strong {
+    color: var(--primary);
+    font-size: 30px;
+    letter-spacing: -0.04em;
+}
+
+.votes-summary span {
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.votes-list {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vote-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+    padding: 22px;
+}
+
+.vote-card-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.vote-card-header > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vote-date {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.vote-organization {
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.vote-value {
+    background: var(--primary);
+    border-radius: 999px;
+    color: #ffffff;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 10px;
+}
+
+.vote-card > p {
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 16px 0;
+}
+
+.vote-result {
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.vote-result span {
+    color: var(--text-soft);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.vote-result strong {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.votes-disclaimer {
+    color: var(--text-soft);
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 12px;
+}
+
+.empty-votes {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: 15px;
+    grid-column: 1 / -1;
+    padding: 34px;
+    text-align: center;
+}
+
+.empty-votes p {
+    color: var(--text-soft);
+    margin-top: 6px;
+}
+
+@media (max-width: 700px) {
+    .votes-list {
+        grid-template-columns: 1fr;
+    }
+}

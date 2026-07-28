@@ -1,16 +1,19 @@
-from django.http import Http404
-from django.shortcuts import render
-from django.core.paginator import Paginator
 from datetime import date
 
+from django.core.paginator import Paginator
+from django.http import Http404
+from django.shortcuts import render
+
+from .models import DeputyVote
 from .services.chamber_api import (
     ChamberAPIError,
     get_deputy_by_id,
-    get_sao_paulo_deputies,
     get_deputy_expenses,
-    summarize_expenses,
     get_deputy_propositions,
+    get_sao_paulo_deputies,
+    summarize_expenses,
 )
+
 
 def politicians_list(request):
     searched_name = request.GET.get("name", "").strip()
@@ -20,6 +23,7 @@ def politicians_list(request):
 
     try:
         all_deputies = get_sao_paulo_deputies()
+
     except ChamberAPIError as error:
         all_deputies = []
         error_message = str(error)
@@ -40,17 +44,25 @@ def politicians_list(request):
         filtered_deputies = [
             deputy
             for deputy in filtered_deputies
-            if normalized_name in deputy.get("nome", "").casefold()
+            if normalized_name
+            in deputy.get("nome", "").casefold()
         ]
 
     if selected_party:
         filtered_deputies = [
             deputy
             for deputy in filtered_deputies
-            if deputy.get("siglaPartido", "").upper() == selected_party
+            if deputy.get(
+                "siglaPartido",
+                "",
+            ).upper()
+            == selected_party
         ]
 
-    paginator = Paginator(filtered_deputies, 12)
+    paginator = Paginator(
+        filtered_deputies,
+        12,
+    )
 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -70,9 +82,11 @@ def politicians_list(request):
         context,
     )
 
+
 def politician_detail(request, deputy_id):
     try:
         deputy = get_deputy_by_id(deputy_id)
+
     except ChamberAPIError as error:
         context = {
             "error_message": str(error),
@@ -89,6 +103,7 @@ def politician_detail(request, deputy_id):
         raise Http404("Politician not found.")
 
     current_year = date.today().year
+
     expense_error = None
 
     expense_summary = {
@@ -103,7 +118,9 @@ def politician_detail(request, deputy_id):
             year=current_year,
         )
 
-        expense_summary = summarize_expenses(expenses)
+        expense_summary = summarize_expenses(
+            expenses
+        )
 
     except ChamberAPIError as error:
         expense_error = str(error)
@@ -118,7 +135,23 @@ def politician_detail(request, deputy_id):
         )
 
     except ChamberAPIError as error:
-        proposition_error = str(error)    
+        proposition_error = str(error)
+
+    recent_votes_query = (
+        DeputyVote.objects
+        .select_related("voting")
+        .filter(
+            deputy_id=deputy_id,
+            voting__voting_date__year=current_year,
+        )
+        .order_by(
+            "-voting__voting_date",
+            "-vote_registered_at",
+        )
+    )
+
+    votes_count = recent_votes_query.count()
+    recent_votes = recent_votes_query[:8]
 
     context = {
         "deputy": deputy,
@@ -128,6 +161,8 @@ def politician_detail(request, deputy_id):
         "propositions": propositions[:6],
         "propositions_count": len(propositions),
         "proposition_error": proposition_error,
+        "votes_count": votes_count,
+        "recent_votes": recent_votes,
     }
 
     return render(
