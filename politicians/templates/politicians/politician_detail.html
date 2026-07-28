@@ -167,6 +167,65 @@
     </div>
 </section>
 
+<section class="expenses-section">
+    <div class="profile-section-heading">
+        <span>Public spending</span>
+
+        <h2>
+            CEAP expenses in {{ current_year }}
+        </h2>
+    </div>
+
+    {% if expense_error %}
+        <div class="alert">
+            {{ expense_error }}
+        </div>
+    {% else %}
+        <div class="expense-summary">
+            <article class="expense-total-card">
+                <span class="information-label">
+                    Net amount recorded
+                </span>
+
+                <strong>
+                    {{ expense_summary.formatted_total }}
+                </strong>
+
+                <p>
+                    Based on {{ expense_summary.records_count }}
+                    expense record{{ expense_summary.records_count|pluralize }}.
+                </p>
+            </article>
+
+            <div class="expense-categories">
+                <h3>Largest categories</h3>
+
+                {% for category in expense_summary.top_categories %}
+                    <div class="expense-category">
+                        <span>
+                            {{ category.name }}
+                        </span>
+
+                        <strong>
+                            {{ category.formatted_amount }}
+                        </strong>
+                    </div>
+                {% empty %}
+                    <p class="no-expenses-message">
+                        No CEAP expenses were found for this year.
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <p class="expense-disclaimer">
+            These values refer only to the Parliamentary Activity
+            Allowance and do not represent every public cost associated
+            with the politician's office.
+        </p>
+    {% endif %}
+</section>
+
 <section class="office-section">
     <div class="profile-section-heading">
         <span>Institutional contact</span>

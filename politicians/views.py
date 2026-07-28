@@ -1,11 +1,14 @@
 from django.http import Http404
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from datetime import date
 
 from .services.chamber_api import (
     ChamberAPIError,
     get_deputy_by_id,
     get_sao_paulo_deputies,
+    get_deputy_expenses,
+    summarize_expenses,
 )
 
 def politicians_list(request):
@@ -84,8 +87,31 @@ def politician_detail(request, deputy_id):
     if not deputy:
         raise Http404("Politician not found.")
 
+    current_year = date.today().year
+    expense_error = None
+
+    expense_summary = {
+        "formatted_total": "Not available",
+        "records_count": 0,
+        "top_categories": [],
+    }
+
+    try:
+        expenses = get_deputy_expenses(
+            deputy_id=deputy_id,
+            year=current_year,
+        )
+
+        expense_summary = summarize_expenses(expenses)
+
+    except ChamberAPIError as error:
+        expense_error = str(error)
+
     context = {
         "deputy": deputy,
+        "current_year": current_year,
+        "expense_summary": expense_summary,
+        "expense_error": expense_error,
     }
 
     return render(
