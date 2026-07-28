@@ -41,39 +41,192 @@
                 {{ error_message }}
             </div>
         {% else %}
-            <a class="back-link" href="/">
-                ← Back to politicians
-            </a>
+      <a class="back-link" href="/">
+    ← Back to politicians
+</a>
 
-            <section class="profile-header">
-                <img
-                    class="profile-photo"
-                    src="{{ deputy.ultimoStatus.urlFoto }}"
-                    alt="Official portrait of {{ deputy.ultimoStatus.nome }}"
+<section class="profile-header">
+    <img
+        class="profile-photo"
+        src="{{ deputy.ultimoStatus.urlFoto }}"
+        alt="Official portrait of {{ deputy.ultimoStatus.nome }}"
+    >
+
+    <div class="profile-main-information">
+        <span class="eyebrow-dark">
+            Federal Deputy
+        </span>
+
+        <h1>
+            {{ deputy.ultimoStatus.nome }}
+        </h1>
+
+        <p class="profile-party">
+            {{ deputy.ultimoStatus.siglaPartido }}
+            —
+            {{ deputy.ultimoStatus.siglaUf }}
+        </p>
+
+        <div class="profile-actions">
+            {% if deputy.ultimoStatus.email %}
+                <a
+                    class="primary-action"
+                    href="mailto:{{ deputy.ultimoStatus.email }}"
                 >
+                    Contact office
+                </a>
+            {% endif %}
 
-                <div>
-                    <span class="eyebrow-dark">
-                        Federal Deputy
-                    </span>
+            {% if deputy.uri %}
+                <a
+                    class="secondary-action"
+                    href="{{ deputy.uri }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View official data
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
 
-                    <h1>
-                        {{ deputy.ultimoStatus.nome }}
-                    </h1>
+<section class="profile-details">
+    <div class="profile-section-heading">
+        <span>Public information</span>
+        <h2>Profile overview</h2>
+    </div>
 
-                    <p class="profile-party">
-                        {{ deputy.ultimoStatus.siglaPartido }}
-                        —
-                        {{ deputy.ultimoStatus.siglaUf }}
-                    </p>
+    <div class="information-grid">
+        <article class="information-card">
+            <span class="information-label">
+                Civil name
+            </span>
 
-                    {% if deputy.ultimoStatus.email %}
-                        <a href="mailto:{{ deputy.ultimoStatus.email }}">
-                            {{ deputy.ultimoStatus.email }}
-                        </a>
+            <strong>
+                {{ deputy.nomeCivil|default:"Not available" }}
+            </strong>
+        </article>
+
+        <article class="information-card">
+            <span class="information-label">
+                Current status
+            </span>
+
+            <strong>
+                {{ deputy.ultimoStatus.situacao|default:"Not available" }}
+            </strong>
+        </article>
+
+        <article class="information-card">
+            <span class="information-label">
+                Electoral condition
+            </span>
+
+            <strong>
+                {{ deputy.ultimoStatus.condicaoEleitoral|default:"Not available" }}
+            </strong>
+        </article>
+
+        <article class="information-card">
+            <span class="information-label">
+                Education
+            </span>
+
+            <strong>
+                {{ deputy.escolaridade|default:"Not available" }}
+            </strong>
+        </article>
+
+        <article class="information-card">
+            <span class="information-label">
+                Birth date
+            </span>
+
+            <strong>
+                {{ deputy.dataNascimento|default:"Not available" }}
+            </strong>
+        </article>
+
+        <article class="information-card">
+            <span class="information-label">
+                Birthplace
+            </span>
+
+            <strong>
+                {% if deputy.municipioNascimento %}
+                    {{ deputy.municipioNascimento }}
+                    {% if deputy.ufNascimento %}
+                        — {{ deputy.ufNascimento }}
                     {% endif %}
-                </div>
-            </section>
+                {% else %}
+                    Not available
+                {% endif %}
+            </strong>
+        </article>
+    </div>
+</section>
+
+<section class="office-section">
+    <div class="profile-section-heading">
+        <span>Institutional contact</span>
+        <h2>Parliamentary office</h2>
+    </div>
+
+    <div class="office-card">
+        <div>
+            <span class="information-label">
+                Office
+            </span>
+
+            <strong>
+                {{ deputy.ultimoStatus.gabinete.nome|default:"Not available" }}
+            </strong>
+        </div>
+
+        <div>
+            <span class="information-label">
+                Building and room
+            </span>
+
+            <strong>
+                {% if deputy.ultimoStatus.gabinete.predio %}
+                    Building {{ deputy.ultimoStatus.gabinete.predio }}
+
+                    {% if deputy.ultimoStatus.gabinete.andar %}
+                        · Floor {{ deputy.ultimoStatus.gabinete.andar }}
+                    {% endif %}
+
+                    {% if deputy.ultimoStatus.gabinete.sala %}
+                        · Room {{ deputy.ultimoStatus.gabinete.sala }}
+                    {% endif %}
+                {% else %}
+                    Not available
+                {% endif %}
+            </strong>
+        </div>
+
+        <div>
+            <span class="information-label">
+                Phone
+            </span>
+
+            <strong>
+                {{ deputy.ultimoStatus.gabinete.telefone|default:"Not available" }}
+            </strong>
+        </div>
+
+        <div>
+            <span class="information-label">
+                Email
+            </span>
+
+            <strong>
+                {{ deputy.ultimoStatus.gabinete.email|default:deputy.ultimoStatus.email|default:"Not available" }}
+            </strong>
+        </div>
+    </div>
+</section>
         {% endif %}
     </main>
 </body>

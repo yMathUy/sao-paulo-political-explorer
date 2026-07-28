@@ -609,3 +609,129 @@ a {
         width: 100%;
     }
 }
+
+.profile-main-information {
+    flex: 1;
+}
+
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.primary-action,
+.secondary-action {
+    align-items: center;
+    border-radius: 10px;
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    text-decoration: none;
+}
+
+.primary-action {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.primary-action:hover {
+    background: var(--primary-dark);
+}
+
+.secondary-action {
+    border: 1px solid var(--border-strong);
+    color: var(--primary);
+}
+
+.profile-details,
+.office-section {
+    margin-top: 34px;
+}
+
+.profile-section-heading {
+    margin-bottom: 18px;
+}
+
+.profile-section-heading span {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.profile-section-heading h2 {
+    font-size: 25px;
+    letter-spacing: -0.025em;
+    margin-top: 5px;
+}
+
+.information-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.information-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 115px;
+    padding: 20px;
+}
+
+.information-label {
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.information-card strong,
+.office-card strong {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.office-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 26px;
+}
+
+.office-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+@media (max-width: 800px) {
+    .information-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .information-grid,
+    .office-card {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
