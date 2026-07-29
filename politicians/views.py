@@ -19,8 +19,10 @@ from .services.senate_api import (
     get_senator_authorships,
     get_senator_by_id,
     get_senator_committees,
+    get_senator_expenses,
     get_senator_mandates,
     get_senator_votes,
+    summarize_senator_expenses,
 )
 
 
@@ -272,6 +274,25 @@ def senator_detail(request, senator_id):
         if str(vote["session_year"]) == str(current_year)
     ]
 
+    senator_expense_error = None
+    senator_expense_summary = {
+        "formatted_total": "Not available",
+        "records_count": 0,
+        "top_categories": [],
+    }
+
+    try:
+        senator_expenses = get_senator_expenses(
+            senator_id,
+            current_year,
+        )
+        senator_expense_summary = summarize_senator_expenses(
+            senator_expenses
+        )
+
+    except SenateAPIError as error:
+        senator_expense_error = str(error)
+
     context = {
         "senator": senator,
         "current_year": current_year,
@@ -293,6 +314,8 @@ def senator_detail(request, senator_id):
         "senate_votes": current_senate_votes[:8],
         "senate_votes_count": len(current_senate_votes),
         "senate_vote_error": senate_vote_error,
+        "senator_expense_summary": senator_expense_summary,
+        "senator_expense_error": senator_expense_error,
     }
 
     return render(

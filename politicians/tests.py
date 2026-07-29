@@ -9,10 +9,12 @@ from .services.senate_api import (
     SenateAPIError,
     get_current_sao_paulo_senators,
     get_senator_by_id,
+    get_senator_expenses,
     parse_senator_authorships,
     parse_senator_committees,
     parse_senator_mandates,
     parse_senator_votes,
+    summarize_senator_expenses,
 )
 
 
@@ -316,3 +318,56 @@ class SenateAPIIntegrationTests(SimpleTestCase):
 
         with self.assertRaises(SenateAPIError):
             get_senator_by_id(99)
+
+    @patch("politicians.services.senate_api.requests.get")
+    def test_ceaps_expenses_are_filtered_by_senator(self, mocked_get):
+        mocked_get.return_value = self.response_with(
+            [
+                {
+                    "codSenador": 10,
+                    "tipoDespesa": "Fuel",
+                    "valorReembolsado": 100,
+                },
+                {
+                    "codSenador": 20,
+                    "tipoDespesa": "Fuel",
+                    "valorReembolsado": 200,
+                },
+            ]
+        )
+
+        expenses = get_senator_expenses(10, 2026)
+
+        self.assertEqual(len(expenses), 1)
+        self.assertEqual(expenses[0]["valorReembolsado"], 100)
+
+
+class SenateExpenseSummaryTests(SimpleTestCase):
+    def test_summarizes_reimbursed_values_by_category(self):
+        summary = summarize_senator_expenses(
+            [
+                {
+                    "tipoDespesa": "Fuel",
+                    "valorReembolsado": 100.50,
+                },
+                {
+                    "tipoDespesa": "Fuel",
+                    "valorReembolsado": 49.50,
+                },
+                {
+                    "tipoDespesa": "Office",
+                    "valorReembolsado": 50,
+                },
+            ]
+        )
+
+        self.assertEqual(summary["formatted_total"], "R$ 200,00")
+        self.assertEqual(summary["records_count"], 3)
+        self.assertEqual(
+            summary["top_categories"][0]["name"],
+            "Fuel",
+        )
+        self.assertEqual(
+            summary["top_categories"][0]["formatted_amount"],
+            "R$ 150,00",
+        )

@@ -1,3 +1,5 @@
+from collections import defaultdict
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 import requests
@@ -5,6 +7,9 @@ from django.core.cache import cache
 
 
 SENATE_API_URL = "https://legis.senado.leg.br/dadosabertos"
+SENATE_ADMIN_API_URL = (
+    "https://adm.senado.gov.br/adm-dadosabertos/api/v1"
+)
 
 SENATORS_CACHE_KEY = "current_sao_paulo_senators"
 SENATORS_CACHE_TIMEOUT = 60 * 30
@@ -339,6 +344,63 @@ def parse_senator_votes(
     return votes
 
 
+def format_brl(value: Decimal) -> str:
+    """Format a decimal value using Brazilian currency notation."""
+
+    formatted_value = f"{value:,.2f}"
+    formatted_value = (
+        formatted_value
+        .replace(",", "TEMP")
+        .replace(".", ",")
+        .replace("TEMP", ".")
+    )
+
+    return f"R$ {formatted_value}"
+
+
+def summarize_senator_expenses(
+    expenses: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Calculate CEAPS totals and largest categories."""
+
+    total = Decimal("0")
+    totals_by_category: defaultdict[str, Decimal] = defaultdict(
+        Decimal
+    )
+
+    for expense in expenses:
+        try:
+            amount = Decimal(
+                str(expense.get("valorReembolsado") or 0)
+            )
+        except InvalidOperation:
+            continue
+
+        category = expense.get("tipoDespesa") or "Other expenses"
+        total += amount
+        totals_by_category[category] += amount
+
+    categories = [
+        {
+            "name": category,
+            "amount": amount,
+            "formatted_amount": format_brl(amount),
+        }
+        for category, amount in sorted(
+            totals_by_category.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+    ]
+
+    return {
+        "total": total,
+        "formatted_total": format_brl(total),
+        "records_count": len(expenses),
+        "top_categories": categories[:6],
+    }
+
+
 def get_current_sao_paulo_senators() -> list[dict[str, Any]]:
     """Return senators currently serving for São Paulo."""
 
@@ -647,3 +709,48 @@ def get_senator_votes(senator_id: int) -> list[dict[str, Any]]:
     cache.set(cache_key, votes, SENATORS_CACHE_TIMEOUT)
 
     return votes
+
+
+def get_senator_expenses(
+    senator_id: int,
+    year: int,
+) -> list[dict[str, Any]]:
+    """Return official CEAPS reimbursements for a senator and year."""
+
+    cache_key = f"senate_ceaps_{year}"
+    yearly_expenses = cache.get(cache_key)
+
+    if yearly_expenses is None:
+        try:
+            response = requests.get(
+                (
+                    f"{SENATE_ADMIN_API_URL}/senadores/"
+                    f"despesas_ceaps/{year}"
+                ),
+                headers=REQUEST_HEADERS,
+                timeout=(3.05, 60),
+            )
+            response.raise_for_status()
+            yearly_expenses = response.json()
+
+        except (requests.RequestException, ValueError) as error:
+            raise SenateAPIError(
+                "Senator CEAPS data is temporarily unavailable."
+            ) from error
+
+        if not isinstance(yearly_expenses, list):
+            raise SenateAPIError(
+                "The Senate returned an unexpected CEAPS response."
+            )
+
+        cache.set(
+            cache_key,
+            yearly_expenses,
+            SENATORS_CACHE_TIMEOUT,
+        )
+
+    return [
+        expense
+        for expense in yearly_expenses
+        if str(expense.get("codSenador", "")) == str(senator_id)
+    ]

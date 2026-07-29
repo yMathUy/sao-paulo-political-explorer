@@ -153,6 +153,59 @@
                 </div>
             </section>
 
+            <section class="expenses-section">
+                <div class="profile-section-heading">
+                    <span>Public spending</span>
+                    <h2>CEAPS expenses in {{ current_year }}</h2>
+                </div>
+
+                {% if senator_expense_error %}
+                    <div class="alert" role="alert">
+                        {{ senator_expense_error }}
+                    </div>
+                {% else %}
+                    <div class="expense-summary">
+                        <article class="expense-total-card">
+                            <span class="information-label">
+                                Reimbursed amount
+                            </span>
+                            <strong>
+                                {{ senator_expense_summary.formatted_total }}
+                            </strong>
+                            <p>
+                                Based on
+                                {{ senator_expense_summary.records_count }}
+                                CEAPS expense
+                                record{{ senator_expense_summary.records_count|pluralize }}.
+                            </p>
+                        </article>
+
+                        <div class="expense-categories">
+                            <h3>Largest categories</h3>
+
+                            {% for category in senator_expense_summary.top_categories %}
+                                <div class="expense-category">
+                                    <span>{{ category.name }}</span>
+                                    <strong>
+                                        {{ category.formatted_amount }}
+                                    </strong>
+                                </div>
+                            {% empty %}
+                                <p class="no-expenses-message">
+                                    No CEAPS expenses were found for this year.
+                                </p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <p class="expense-disclaimer">
+                        These values cover only reimbursements published in
+                        the Senate CEAPS dataset. They do not represent every
+                        public cost associated with the senator's office.
+                    </p>
+                {% endif %}
+            </section>
+
             <section class="mandates-section">
                 <div class="profile-section-heading">
                     <span>Parliamentary terms</span>
