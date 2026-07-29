@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Temporary error | Political Explorer{% endblock %}
+{% block content %}
+<section class="status-page">
+    <span class="status-code">500</span>
+    <h1>Something went wrong</h1>
+    <p>Please try again shortly. No data was changed by this error.</p>
+    <a class="primary-action" href="{% url 'politicians:list' %}">Return to politicians</a>
+</section>
+{% endblock %}

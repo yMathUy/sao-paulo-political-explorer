@@ -1,47 +1,16 @@
-{% load static %}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% block title %}{% if deputy %}{{ deputy.ultimoStatus.nome }} | Political Explorer{% else %}Politician Profile | Political Explorer{% endif %}{% endblock %}
+{% block meta_description %}Official public profile information for a São Paulo federal deputy.{% endblock %}
+{% block main_class %}page-container politician-detail-page{% endblock %}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        {% if deputy %}
-            {{ deputy.ultimoStatus.nome }}
-        {% else %}
-            Politician Profile
-        {% endif %}
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="{% static 'politicians/css/styles.css' %}"
-    >
-</head>
-
-<body>
-    <header class="site-header">
-        <div class="header-container">
-            <a class="brand" href="/">
-                <span class="brand-mark">SP</span>
-
-                <span>Political Explorer</span>
-            </a>
-        </div>
-    </header>
-
-    <main class="page-container politician-detail-page">
-        {% if error_message %}
+{% block content %}
+{% if error_message %}
             <div class="alert">
                 {{ error_message }}
             </div>
         {% else %}
-      <a class="back-link" href="/">
+      <a class="back-link" href="{% url 'politicians:list' %}">
     ← Back to politicians
 </a>
 
@@ -436,6 +405,4 @@
     </div>
 </section>
         {% endif %}
-    </main>
-</body>
-</html>
+{% endblock %}

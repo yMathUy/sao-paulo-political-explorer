@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{% if senator %}{{ senator.name }} | Political Explorer{% else %}Senator Profile | Political Explorer{% endif %}{% endblock %}
+{% block meta_description %}Official public profile information for a São Paulo senator.{% endblock %}
+{% block main_class %}page-container politician-detail-page{% endblock %}
+
+{% block content %}
+{% if error_message %}
+            <div class="alert" role="alert">
+                {{ error_message }}
+            </div>
+        {% else %}
+            <a
+                class="back-link"
+                href="{% url 'politicians:senators' %}"
+            >
+                ← Back to senators
+            </a>
+
+            <section class="profile-header">
+                {% if senator.photo_url %}
+                    <img
+                        class="profile-photo"
+                        src="{{ senator.photo_url }}"
+                        alt="Official portrait of {{ senator.name }}"
+                        loading="eager"
+                        decoding="async"
+                    >
+                {% endif %}
+
+                <div class="profile-main-information">
+                    <span class="eyebrow-dark">
+                        Senator
+                    </span>
+
+                    <h1>
+                        {{ senator.name }}
+                    </h1>
+
+                    <p class="profile-party">
+                        {{ senator.party|default:"Party not available" }}
+                        —
+                        {{ senator.state|default:"SP" }}
+                    </p>
+
+                    <div class="profile-actions">
+                        {% if senator.email %}
+                            <a
+                                class="primary-action"
+                                href="mailto:{{ senator.email }}"
+                            >
+                                Contact office
+                            </a>
+                        {% endif %}
+
+                        {% if senator.profile_url %}
+                            <a
+                                class="secondary-action"
+                                href="{{ senator.profile_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                View official profile
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="profile-details">
+                <div class="profile-section-heading">
+                    <span>Public information</span>
+                    <h2>Profile overview</h2>
+                </div>
+
+                <div class="information-grid">
+                    <article class="information-card">
+                        <span class="information-label">
+                            Civil name
+                        </span>
+
+                        <strong>
+                            {{ senator.civil_name|default:"Not available" }}
+                        </strong>
+                    </article>
+
+                    <article class="information-card">
+                        <span class="information-label">
+                            Political party
+                        </span>
+
+                        <strong>
+                            {{ senator.party|default:"Not available" }}
+                        </strong>
+                    </article>
+
+                    <article class="information-card">
+                        <span class="information-label">
+                            State
+                        </span>
+
+                        <strong>
+                            {{ senator.state|default:"Not available" }}
+                        </strong>
+                    </article>
+
+                    <article class="information-card">
+                        <span class="information-label">
+                            Birth date
+                        </span>
+
+                        <strong>
+                            {{ senator.birth_date|default:"Not available" }}
+                        </strong>
+                    </article>
+
+                    <article class="information-card">
+                        <span class="information-label">
+                            Birthplace
+                        </span>
+
+                        <strong>
+                            {{ senator.birthplace|default:"Not available" }}
+                        </strong>
+                    </article>
+
+                    <article class="information-card">
+                        <span class="information-label">
+                            Institutional email
+                        </span>
+
+                        <strong>
+                            {% if senator.email %}
+                                <a href="mailto:{{ senator.email }}">
+                                    {{ senator.email }}
+                                </a>
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </strong>
+                    </article>
+                </div>
+            </section>
+
+            <section class="office-section">
+                <div class="profile-section-heading">
+                    <span>Data source</span>
+                    <h2>Official Senate record</h2>
+                </div>
+
+                <div class="office-card">
+                    <div>
+                        <span class="information-label">
+                            Institution
+                        </span>
+
+                        <strong>
+                            Federal Senate of Brazil
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span class="information-label">
+                            Position
+                        </span>
+
+                        <strong>
+                            Senator representing São Paulo
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span class="information-label">
+                            Data source
+                        </span>
+
+                        <strong>
+                            Federal Senate Open Data API
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span class="information-label">
+                            Official profile
+                        </span>
+
+                        <strong>
+                            {% if senator.profile_url %}
+                                <a
+                                    href="{{ senator.profile_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open official Senate page
+                                </a>
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+{% endblock %}

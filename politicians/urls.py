@@ -12,13 +12,18 @@ urlpatterns = [
         name="list",
     ),
     path(
+        "politicians/<int:deputy_id>/",
+        views.politician_detail,
+        name="detail",
+    ),
+    path(
         "senators/",
         views.senators_list,
         name="senators",
     ),
     path(
-        "politicians/<int:deputy_id>/",
-        views.politician_detail,
-        name="detail",
+        "senators/<int:senator_id>/",
+        views.senator_detail,
+        name="senator_detail",
     ),
 ]

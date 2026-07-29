@@ -97,7 +97,8 @@ a {
     gap: 8px;
 }
 
-.main-navigation a {
+.main-navigation a,
+.navigation-placeholder {
     border-radius: 8px;
     color: var(--text-soft);
     font-size: 14px;
@@ -110,6 +111,11 @@ a {
 .main-navigation a.active {
     background: var(--primary-soft);
     color: var(--primary);
+}
+
+.navigation-placeholder {
+    cursor: not-allowed;
+    opacity: 0.58;
 }
 
 .hero {
@@ -1079,4 +1085,38 @@ a {
     color: var(--text-soft);
     font-size: 13px;
     margin-top: 6px;
+}
+
+.category-button.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.status-page {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    max-width: 680px;
+    min-height: calc(100vh - 177px);
+    padding: 100px 24px;
+    text-align: center;
+}
+
+.status-code {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.status-page h1 {
+    font-size: clamp(34px, 6vw, 54px);
+    letter-spacing: -0.04em;
+    margin-top: 10px;
+}
+
+.status-page p {
+    color: var(--text-soft);
+    margin: 12px 0 28px;
 }

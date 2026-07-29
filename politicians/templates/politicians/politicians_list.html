@@ -1,51 +1,10 @@
-{% load static %}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% block title %}São Paulo Political Explorer{% endblock %}
+{% block meta_description %}Explore public political data from the state of São Paulo.{% endblock %}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="Explore public political data from the state of São Paulo."
-    >
-
-    <title>São Paulo Political Explorer</title>
-
-    <link
-        rel="stylesheet"
-        href="{% static 'politicians/css/styles.css' %}"
-    >
-</head>
-
-<body>
-    <header class="site-header">
-        <div class="header-container">
-            <a class="brand" href="/">
-                <span class="brand-mark">SP</span>
-
-                <span>
-                    Political Explorer
-                </span>
-            </a>
-
-            <nav class="main-navigation" aria-label="Main navigation">
-                <a class="active" href="/">Politicians</a>
-                <a href="#">Bills</a>
-                <a href="#">Votes</a>
-                <a href="#">Compare</a>
-                <a href="#">Methodology</a>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="hero">
+{% block content %}
+<section class="hero">
             <div class="hero-container">
                 <span class="eyebrow">
                     Open political data
@@ -63,30 +22,7 @@
         </section>
 
         <section class="page-container">
-            <div class="category-navigation">
-                <button class="category-button active" type="button">
-                    Federal Deputies
-                </button>
-
-                <a
-                    class="category-button category-link"
-                    href="{% url 'politicians:senators' %}"
-                >
-                    Senators
-                </a>
-
-                <button class="category-button" type="button" disabled>
-                    Governor
-                </button>
-
-                <button class="category-button" type="button" disabled>
-                    Mayors
-                </button>
-
-                <button class="category-button" type="button" disabled>
-                    Candidates
-                </button>
-            </div>
+            {% include "includes/politician_categories.html" with active_category="deputies" %}
 
             <form class="search-panel" method="get">
                 <div class="search-field name-field">
@@ -137,7 +73,7 @@
                 </button>
 
                 {% if searched_name or selected_party %}
-                    <a class="clear-button" href="/">
+                    <a class="clear-button" href="{% url 'politicians:list' %}">
                         Clear
                     </a>
                 {% endif %}
@@ -222,7 +158,7 @@
                                 Try changing the name or political party filter.
                             </p>
 
-                            <a href="/">
+                            <a href="{% url 'politicians:list' %}">
                                 Clear all filters
                             </a>
                         </div>
@@ -263,19 +199,4 @@
                 </nav>
             {% endif %}
         </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="footer-container">
-            <p>
-                Public data provided by official Brazilian government sources.
-            </p>
-
-            <p>
-                This project is independent and has no affiliation with
-                political parties or candidates.
-            </p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock %}

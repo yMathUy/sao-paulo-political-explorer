@@ -4,7 +4,6 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
 
-
 from .models import DeputyVote
 from .services.chamber_api import (
     ChamberAPIError,
@@ -14,15 +13,20 @@ from .services.chamber_api import (
     get_sao_paulo_deputies,
     summarize_expenses,
 )
-
 from .services.senate_api import (
     SenateAPIError,
     get_current_sao_paulo_senators,
+    get_senator_by_id,
 )
+
 
 def politicians_list(request):
     searched_name = request.GET.get("name", "").strip()
-    selected_party = request.GET.get("party", "").strip().upper()
+    selected_party = (
+        request.GET.get("party", "")
+        .strip()
+        .upper()
+    )
 
     error_message = None
 
@@ -64,10 +68,7 @@ def politicians_list(request):
             == selected_party
         ]
 
-    paginator = Paginator(
-        filtered_deputies,
-        12,
-    )
+    paginator = Paginator(filtered_deputies, 12)
 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -87,41 +88,16 @@ def politicians_list(request):
         context,
     )
 
-def senators_list(request):
-    error_message = None
-    senators = []
-
-    try:
-        senators = get_current_sao_paulo_senators()
-
-    except SenateAPIError as error:
-        error_message = str(error)
-
-    context = {
-        "senators": senators,
-        "results_count": len(senators),
-        "error_message": error_message,
-    }
-
-    return render(
-        request,
-        "politicians/senators_list.html",
-        context,
-    )
 
 def politician_detail(request, deputy_id):
     try:
         deputy = get_deputy_by_id(deputy_id)
 
     except ChamberAPIError as error:
-        context = {
-            "error_message": str(error),
-        }
-
         return render(
             request,
             "politicians/politician_detail.html",
-            context,
+            {"error_message": str(error)},
             status=503,
         )
 
@@ -131,7 +107,6 @@ def politician_detail(request, deputy_id):
     current_year = date.today().year
 
     expense_error = None
-
     expense_summary = {
         "formatted_total": "Not available",
         "records_count": 0,
@@ -144,9 +119,7 @@ def politician_detail(request, deputy_id):
             year=current_year,
         )
 
-        expense_summary = summarize_expenses(
-            expenses
-        )
+        expense_summary = summarize_expenses(expenses)
 
     except ChamberAPIError as error:
         expense_error = str(error)
@@ -194,5 +167,54 @@ def politician_detail(request, deputy_id):
     return render(
         request,
         "politicians/politician_detail.html",
+        context,
+    )
+
+
+def senators_list(request):
+    error_message = None
+    senators = []
+
+    try:
+        senators = get_current_sao_paulo_senators()
+
+    except SenateAPIError as error:
+        error_message = str(error)
+
+    context = {
+        "senators": senators,
+        "results_count": len(senators),
+        "error_message": error_message,
+    }
+
+    return render(
+        request,
+        "politicians/senators_list.html",
+        context,
+    )
+
+
+def senator_detail(request, senator_id):
+    try:
+        senator = get_senator_by_id(senator_id)
+
+    except SenateAPIError as error:
+        return render(
+            request,
+            "politicians/senator_detail.html",
+            {"error_message": str(error)},
+            status=503,
+        )
+
+    if not senator:
+        raise Http404("Senator not found.")
+
+    context = {
+        "senator": senator,
+    }
+
+    return render(
+        request,
+        "politicians/senator_detail.html",
         context,
     )

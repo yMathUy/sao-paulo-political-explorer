@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Page not found | Political Explorer{% endblock %}
+{% block content %}
+<section class="status-page">
+    <span class="status-code">404</span>
+    <h1>Page not found</h1>
+    <p>The page may have moved or the address may be incorrect.</p>
+    <a class="primary-action" href="{% url 'politicians:list' %}">Return to politicians</a>
+</section>
+{% endblock %}
