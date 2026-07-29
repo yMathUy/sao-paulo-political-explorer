@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ officeholder.name }} | Political Explorer{% endblock %}
+{% block meta_description %}Official and electoral information about {{ officeholder.name }}, {{ officeholder.role }} of São Paulo.{% endblock %}
+{% block main_class %}page-container politician-detail-page{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'politicians:state_executive' %}">
+    ← Back to state executive
+</a>
+
+<section class="profile-header">
+    {% if officeholder.photo_url %}
+        <img
+            class="profile-photo"
+            src="{{ officeholder.photo_url }}"
+            alt="Official portrait of {{ officeholder.name }}"
+            loading="eager"
+            decoding="async"
+        >
+    {% else %}
+        <div
+            class="profile-photo profile-photo-placeholder"
+            role="img"
+            aria-label="Official portrait not available for {{ officeholder.name }}"
+        >
+            <span aria-hidden="true">
+                {{ officeholder.name|first|upper }}
+            </span>
+            <small>Photo not available</small>
+        </div>
+    {% endif %}
+
+    <div class="profile-main-information">
+        <span class="eyebrow-dark">{{ officeholder.role }}</span>
+        <h1>{{ officeholder.name }}</h1>
+        <p class="profile-party">
+            {{ officeholder.party_at_election }} at the 2022 election
+        </p>
+        <div class="profile-actions">
+            <a
+                class="primary-action"
+                href="{{ officeholder.office_source }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Verify current office
+            </a>
+            <a
+                class="secondary-action"
+                href="{{ officeholder.election_source }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                View election source
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="profile-details">
+    <div class="profile-section-heading">
+        <span>Current office</span>
+        <h2>Mandate overview</h2>
+    </div>
+
+    <div class="information-grid">
+        <article class="information-card">
+            <span class="information-label">Civil name</span>
+            <strong>{{ officeholder.civil_name }}</strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Position</span>
+            <strong>{{ officeholder.role }}</strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Mandate</span>
+            <strong>
+                {{ officeholder.mandate_start }} — {{ officeholder.mandate_end }}
+            </strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Election</span>
+            <strong>
+                {{ officeholder.election_year }} ·
+                {{ officeholder.election_round }}
+            </strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Ticket partner</span>
+            <strong>{{ officeholder.running_mate }}</strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Last verified</span>
+            <strong>{{ officeholder.last_verified }}</strong>
+        </article>
+    </div>
+</section>
+
+<section class="election-result-section">
+    <div class="profile-section-heading">
+        <span>Electoral result</span>
+        <h2>2022 election record</h2>
+    </div>
+
+    <div class="election-result-card">
+        <div>
+            <span class="information-label">Ticket votes</span>
+            <strong>{{ officeholder.election_votes }}</strong>
+        </div>
+        <div>
+            <span class="information-label">Valid vote share</span>
+            <strong>{{ officeholder.election_vote_share }}</strong>
+        </div>
+        <p>
+            These figures describe the elected ticket. They do not by
+            themselves prove who currently occupies the office.
+        </p>
+    </div>
+</section>
+
+<section class="office-section">
+    <div class="profile-section-heading">
+        <span>Official information</span>
+        <h2>Profile and contact</h2>
+    </div>
+    <div class="office-card">
+        <div>
+            <span class="information-label">Biography</span>
+            <strong>{{ officeholder.biography }}</strong>
+        </div>
+        <div>
+            <span class="information-label">Office address</span>
+            <strong>{{ officeholder.office_address }}</strong>
+        </div>
+    </div>
+</section>
+{% endblock %}

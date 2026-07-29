@@ -4,6 +4,7 @@ import requests
 from django.core.cache import cache
 from django.template.loader import get_template
 from django.test import SimpleTestCase
+from django.urls import reverse
 
 from .services.senate_api import (
     SenateAPIError,
@@ -28,6 +29,8 @@ class SharedTemplateArchitectureTests(SimpleTestCase):
             "politicians/politician_detail.html",
             "politicians/senators_list.html",
             "politicians/senator_detail.html",
+            "politicians/state_executive_list.html",
+            "politicians/state_officeholder_detail.html",
         ]
 
         for template_name in template_names:
@@ -371,3 +374,41 @@ class SenateExpenseSummaryTests(SimpleTestCase):
             summary["top_categories"][0]["formatted_amount"],
             "R$ 150,00",
         )
+
+
+class StateExecutiveViewTests(SimpleTestCase):
+    def test_state_executive_list_displays_governor_and_vice(self):
+        response = self.client.get(
+            reverse("politicians:state_executive")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tarcísio de Freitas")
+        self.assertContains(response, "Felicio Ramuth")
+        self.assertContains(response, "Official portrait of Tarcísio")
+        self.assertContains(response, "Official portrait of Felicio")
+
+    def test_governor_profile_separates_current_and_election_sources(
+        self,
+    ):
+        response = self.client.get(
+            reverse(
+                "politicians:state_officeholder_detail",
+                kwargs={"slug": "tarcisio-de-freitas"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Verify current office")
+        self.assertContains(response, "View election source")
+        self.assertContains(response, "55.34%")
+
+    def test_unknown_officeholder_returns_not_found(self):
+        response = self.client.get(
+            reverse(
+                "politicians:state_officeholder_detail",
+                kwargs={"slug": "unknown"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)

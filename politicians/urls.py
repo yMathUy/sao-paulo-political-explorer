@@ -26,4 +26,14 @@ urlpatterns = [
         views.senator_detail,
         name="senator_detail",
     ),
+    path(
+        "governor/",
+        views.state_executive_list,
+        name="state_executive",
+    ),
+    path(
+        "governor/<slug:slug>/",
+        views.state_officeholder_detail,
+        name="state_officeholder_detail",
+    ),
 ]

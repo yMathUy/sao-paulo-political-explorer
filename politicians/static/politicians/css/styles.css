@@ -1090,6 +1090,48 @@ a {
     text-decoration: underline;
 }
 
+.state-executive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.election-result-section {
+    margin-top: 34px;
+}
+
+.election-result-card {
+    background: var(--primary-soft);
+    border: 1px solid rgba(47, 116, 159, 0.18);
+    border-radius: 16px;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 0.5fr)) minmax(260px, 1fr);
+    padding: 24px;
+}
+
+.election-result-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.election-result-card strong {
+    color: var(--primary);
+    font-size: 25px;
+}
+
+.election-result-card p {
+    color: var(--text-soft);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+    .state-executive-grid,
+    .election-result-card {
+        grid-template-columns: 1fr;
+    }
+}
+
 .votes-disclaimer {
     color: var(--text-soft);
     font-size: 12px;

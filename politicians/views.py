@@ -24,6 +24,10 @@ from .services.senate_api import (
     get_senator_votes,
     summarize_senator_expenses,
 )
+from .services.state_government import (
+    get_current_state_executive,
+    get_state_officeholder,
+)
 
 
 def politicians_list(request):
@@ -322,4 +326,30 @@ def senator_detail(request, senator_id):
         request,
         "politicians/senator_detail.html",
         context,
+    )
+
+
+def state_executive_list(request):
+    officeholders = get_current_state_executive()
+
+    return render(
+        request,
+        "politicians/state_executive_list.html",
+        {
+            "officeholders": officeholders,
+            "results_count": len(officeholders),
+        },
+    )
+
+
+def state_officeholder_detail(request, slug):
+    officeholder = get_state_officeholder(slug)
+
+    if not officeholder:
+        raise Http404("State officeholder not found.")
+
+    return render(
+        request,
+        "politicians/state_officeholder_detail.html",
+        {"officeholder": officeholder},
     )

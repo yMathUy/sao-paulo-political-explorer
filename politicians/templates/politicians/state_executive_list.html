@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}São Paulo State Executive | Political Explorer{% endblock %}
+{% block meta_description %}Explore the current governor and vice governor of São Paulo using official sources.{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-container">
+        <span class="eyebrow">State executive</span>
+        <h1>Governor and vice governor of São Paulo.</h1>
+        <p>
+            Current office information is separated from the result of the
+            election that began the mandate.
+        </p>
+    </div>
+</section>
+
+<section class="page-container">
+    {% include "includes/politician_categories.html" with active_category="governor" %}
+
+    <div class="results-header">
+        <div>
+            <h2>Current state executive</h2>
+            <p>Officeholders verified through official state and electoral sources.</p>
+        </div>
+        <span class="results-badge">
+            {{ results_count }} result{{ results_count|pluralize }}
+        </span>
+    </div>
+
+    <div class="politicians-grid state-executive-grid">
+        {% for officeholder in officeholders %}
+            <a
+                class="politician-card politician-card-link"
+                href="{% url 'politicians:state_officeholder_detail' officeholder.slug %}"
+            >
+                <div class="politician-photo-wrapper">
+                    {% if officeholder.photo_url %}
+                        <img
+                            class="politician-photo"
+                            src="{{ officeholder.photo_url }}"
+                            alt="Official portrait of {{ officeholder.name }}"
+                            width="360"
+                            height="270"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    {% else %}
+                        <div
+                            class="politician-photo-placeholder"
+                            role="img"
+                            aria-label="Official portrait not available for {{ officeholder.name }}"
+                        >
+                            <span aria-hidden="true">
+                                {{ officeholder.name|first|upper }}
+                            </span>
+                            <small>Photo not available</small>
+                        </div>
+                    {% endif %}
+                    <span class="position-badge">{{ officeholder.role }}</span>
+                </div>
+
+                <div class="politician-content">
+                    <div class="politician-heading">
+                        <h3>{{ officeholder.name }}</h3>
+                        <span class="party-badge">
+                            {{ officeholder.party_at_election }}
+                        </span>
+                    </div>
+                    <p class="politician-location">São Paulo, Brazil</p>
+                    <div class="politician-footer">
+                        <span>Mandate 2023–2026</span>
+                        <span class="profile-preview">View profile</span>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
