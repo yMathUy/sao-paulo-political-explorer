@@ -2,6 +2,7 @@ from django.template.loader import get_template
 from django.test import SimpleTestCase
 
 from .services.senate_api import (
+    parse_senator_authorships,
     parse_senator_committees,
     parse_senator_mandates,
 )
@@ -120,3 +121,47 @@ class SenateCommitteeParserTests(SimpleTestCase):
         self.assertEqual(committees[0]["abbreviation"], "CUR")
         self.assertTrue(committees[0]["is_current"])
         self.assertFalse(committees[1]["is_current"])
+
+
+class SenateAuthorshipParserTests(SimpleTestCase):
+    def test_parses_primary_and_shared_authorships(self):
+        payload = {
+            "MateriasAutoriaParlamentar": {
+                "Parlamentar": {
+                    "Autorias": {
+                        "Autoria": [
+                            {
+                                "Materia": {
+                                    "Codigo": "10",
+                                    "DescricaoIdentificacao": "PL 1/2026",
+                                    "Sigla": "PL",
+                                    "Numero": "1",
+                                    "Ano": "2026",
+                                    "Ementa": "Primary matter",
+                                    "Data": "2026-02-01",
+                                },
+                                "IndicadorAutorPrincipal": "Sim",
+                            },
+                            {
+                                "Materia": {
+                                    "Codigo": "11",
+                                    "DescricaoIdentificacao": "PEC 2/2026",
+                                    "Sigla": "PEC",
+                                    "Numero": "2",
+                                    "Ano": "2026",
+                                    "Ementa": "Shared matter",
+                                    "Data": "2026-01-01",
+                                },
+                                "IndicadorAutorPrincipal": "Não",
+                            },
+                        ]
+                    }
+                }
+            }
+        }
+
+        authorships = parse_senator_authorships(payload)
+
+        self.assertEqual(authorships[0]["description"], "PL 1/2026")
+        self.assertTrue(authorships[0]["is_primary_author"])
+        self.assertFalse(authorships[1]["is_primary_author"])

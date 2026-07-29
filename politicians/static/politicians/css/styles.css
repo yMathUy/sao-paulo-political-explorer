@@ -1203,6 +1203,76 @@ a {
     }
 }
 
+.senate-propositions-section {
+    margin-top: 34px;
+}
+
+.authorship-summary {
+    align-items: center;
+    background: var(--primary-soft);
+    border: 1px solid rgba(47, 116, 159, 0.18);
+    border-radius: 14px;
+    display: flex;
+    gap: 28px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding: 20px 22px;
+}
+
+.authorship-summary > div {
+    align-items: baseline;
+    display: flex;
+    gap: 8px;
+}
+
+.authorship-summary > div strong {
+    color: var(--primary);
+    font-size: 30px;
+}
+
+.authorship-summary span,
+.authorship-summary dt {
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.authorship-summary dl {
+    display: flex;
+    gap: 22px;
+}
+
+.authorship-summary dl > div {
+    text-align: right;
+}
+
+.authorship-summary dd {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.authorship-kind {
+    color: var(--accent);
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 750;
+    margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+    .authorship-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .authorship-summary dl {
+        width: 100%;
+    }
+
+    .authorship-summary dl > div {
+        text-align: left;
+    }
+}
+
 .committees-section {
     margin-top: 34px;
 }

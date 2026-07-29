@@ -271,6 +271,82 @@
                 {% endif %}
             </section>
 
+            <section class="senate-propositions-section">
+                <div class="profile-section-heading">
+                    <span>Legislative activity</span>
+                    <h2>Authorships in {{ current_year }}</h2>
+                </div>
+
+                {% if authorship_error %}
+                    <div class="alert" role="alert">
+                        {{ authorship_error }}
+                    </div>
+                {% else %}
+                    <div class="authorship-summary">
+                        <div>
+                            <strong>{{ authorships_count }}</strong>
+                            <span>authorship record{{ authorships_count|pluralize }}</span>
+                        </div>
+                        <dl>
+                            <div>
+                                <dt>Primary author</dt>
+                                <dd>{{ primary_authorships_count }}</dd>
+                            </div>
+                            <div>
+                                <dt>Coauthor or signatory</dt>
+                                <dd>{{ coauthorships_count }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="propositions-list">
+                        {% for proposition in authorships %}
+                            <article class="proposition-card">
+                                <div class="proposition-header">
+                                    <span class="proposition-type">
+                                        {{ proposition.type|default:"Matter" }}
+                                    </span>
+                                    <strong>
+                                        {{ proposition.description|default:"Identification unavailable" }}
+                                    </strong>
+                                </div>
+
+                                <span class="authorship-kind">
+                                    {{ proposition.authorship_label }}
+                                </span>
+
+                                <p>
+                                    {{ proposition.summary|default:"No summary available."|truncatechars:300 }}
+                                </p>
+
+                                {% if proposition.official_url %}
+                                    <a
+                                        href="{{ proposition.official_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        View official record →
+                                    </a>
+                                {% endif %}
+                            </article>
+                        {% empty %}
+                            <div class="empty-propositions">
+                                <h3>No authorships found</h3>
+                                <p>
+                                    No authorship records were returned for
+                                    {{ current_year }}.
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <p class="votes-disclaimer">
+                        Senate authorship records may include primary
+                        authorship, coauthorship and signatures of support.
+                    </p>
+                {% endif %}
+            </section>
+
             <section class="office-section">
                 <div class="profile-section-heading">
                     <span>Data source</span>

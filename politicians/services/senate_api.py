@@ -182,6 +182,75 @@ def parse_senator_committees(
     return committees
 
 
+def parse_senator_authorships(
+    payload: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Convert Senate authorship records into normalized propositions."""
+
+    raw_authorships = (
+        payload
+        .get("MateriasAutoriaParlamentar", {})
+        .get("Parlamentar", {})
+        .get("Autorias", {})
+        .get("Autoria", [])
+    )
+    propositions = []
+
+    for raw_authorship in as_list(raw_authorships):
+        matter = raw_authorship.get("Materia", {})
+        matter_id = matter.get("Codigo", "")
+        is_primary_author = (
+            str(
+                raw_authorship.get(
+                    "IndicadorAutorPrincipal",
+                    "",
+                )
+            ).strip().casefold()
+            in {"sim", "s", "yes", "true", "1"}
+        )
+
+        propositions.append(
+            {
+                "id": matter_id,
+                "process_id": matter.get(
+                    "IdentificacaoProcesso",
+                    "",
+                ),
+                "description": matter.get(
+                    "DescricaoIdentificacao",
+                    "",
+                ),
+                "type": matter.get("Sigla", ""),
+                "number": matter.get("Numero", ""),
+                "year": matter.get("Ano", ""),
+                "summary": matter.get("Ementa", ""),
+                "date": matter.get("Data", ""),
+                "is_primary_author": is_primary_author,
+                "authorship_label": (
+                    "Primary author"
+                    if is_primary_author
+                    else "Coauthor or signatory"
+                ),
+                "official_url": (
+                    "https://www25.senado.leg.br/web/atividade/"
+                    f"materias/-/materia/{matter_id}"
+                    if matter_id
+                    else ""
+                ),
+            }
+        )
+
+    propositions.sort(
+        key=lambda proposition: (
+            proposition.get("date", ""),
+            proposition.get("id", ""),
+        ),
+        reverse=True,
+    )
+
+    return propositions
+
+
 def get_current_sao_paulo_senators() -> list[dict[str, Any]]:
     """Return senators currently serving for São Paulo."""
 
@@ -432,3 +501,32 @@ def get_senator_committees(senator_id: int) -> list[dict[str, Any]]:
     cache.set(cache_key, committees, SENATORS_CACHE_TIMEOUT)
 
     return committees
+
+
+def get_senator_authorships(senator_id: int) -> list[dict[str, Any]]:
+    """Return matters authored or coauthored by a senator."""
+
+    cache_key = f"senator_{senator_id}_authorships"
+    cached_authorships = cache.get(cache_key)
+
+    if cached_authorships is not None:
+        return cached_authorships
+
+    try:
+        response = requests.get(
+            f"{SENATE_API_URL}/senador/{senator_id}/autorias",
+            headers=REQUEST_HEADERS,
+            timeout=(3.05, 30),
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    except (requests.RequestException, ValueError) as error:
+        raise SenateAPIError(
+            "Senator proposition data is temporarily unavailable."
+        ) from error
+
+    authorships = parse_senator_authorships(payload)
+    cache.set(cache_key, authorships, SENATORS_CACHE_TIMEOUT)
+
+    return authorships

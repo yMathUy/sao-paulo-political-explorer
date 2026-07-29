@@ -16,6 +16,7 @@ from .services.chamber_api import (
 from .services.senate_api import (
     SenateAPIError,
     get_current_sao_paulo_senators,
+    get_senator_authorships,
     get_senator_by_id,
     get_senator_committees,
     get_senator_mandates,
@@ -235,8 +236,29 @@ def senator_detail(request, senator_id):
         if committee["is_current"]
     ]
 
+    authorships = []
+    authorship_error = None
+    current_year = date.today().year
+
+    try:
+        authorships = get_senator_authorships(senator_id)
+
+    except SenateAPIError as error:
+        authorship_error = str(error)
+
+    current_authorships = [
+        authorship
+        for authorship in authorships
+        if str(authorship["year"]) == str(current_year)
+    ]
+    primary_authorships_count = sum(
+        authorship["is_primary_author"]
+        for authorship in current_authorships
+    )
+
     context = {
         "senator": senator,
+        "current_year": current_year,
         "mandates": mandates,
         "mandate_error": mandate_error,
         "current_committees": current_committees[:8],
@@ -245,6 +267,13 @@ def senator_detail(request, senator_id):
             len(committees) - len(current_committees)
         ),
         "committee_error": committee_error,
+        "authorships": current_authorships[:6],
+        "authorships_count": len(current_authorships),
+        "primary_authorships_count": primary_authorships_count,
+        "coauthorships_count": (
+            len(current_authorships) - primary_authorships_count
+        ),
+        "authorship_error": authorship_error,
     }
 
     return render(
