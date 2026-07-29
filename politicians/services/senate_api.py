@@ -28,6 +28,160 @@ def force_https(url: str | None) -> str:
     return url.replace("http://", "https://", 1)
 
 
+def as_list(value: Any) -> list[Any]:
+    """Normalize an API field that may be an object or a list."""
+
+    if isinstance(value, list):
+        return value
+
+    if isinstance(value, dict):
+        return [value]
+
+    return []
+
+
+def parse_senator_mandates(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Convert the Senate mandate response into template-ready records."""
+
+    raw_mandates = (
+        payload
+        .get("MandatoParlamentar", {})
+        .get("Parlamentar", {})
+        .get("Mandatos", {})
+        .get("Mandato", [])
+    )
+
+    mandates = []
+
+    for raw_mandate in as_list(raw_mandates):
+        first_term = raw_mandate.get(
+            "PrimeiraLegislaturaDoMandato",
+            {},
+        )
+        second_term = raw_mandate.get(
+            "SegundaLegislaturaDoMandato",
+            {},
+        )
+        raw_parties = (
+            raw_mandate
+            .get("Partidos", {})
+            .get("Partido", [])
+        )
+        parties = as_list(raw_parties)
+        latest_party = parties[-1] if parties else {}
+
+        substitutes = [
+            {
+                "id": substitute.get("CodigoParlamentar", ""),
+                "name": substitute.get(
+                    "NomeParlamentar",
+                    "Name not available",
+                ),
+                "position": substitute.get(
+                    "DescricaoParticipacao",
+                    "Substitute",
+                ),
+            }
+            for substitute in as_list(
+                raw_mandate
+                .get("Suplentes", {})
+                .get("Suplente", [])
+            )
+        ]
+
+        mandates.append(
+            {
+                "id": raw_mandate.get("CodigoMandato", ""),
+                "state": raw_mandate.get("UfParlamentar", ""),
+                "participation": raw_mandate.get(
+                    "DescricaoParticipacao",
+                    "",
+                ),
+                "start_date": first_term.get("DataInicio", ""),
+                "end_date": (
+                    second_term.get("DataFim")
+                    or first_term.get("DataFim")
+                    or ""
+                ),
+                "first_legislature": first_term.get(
+                    "NumeroLegislatura",
+                    "",
+                ),
+                "second_legislature": second_term.get(
+                    "NumeroLegislatura",
+                    "",
+                ),
+                "party": latest_party.get("Sigla", ""),
+                "party_name": latest_party.get("Nome", ""),
+                "substitutes": substitutes,
+            }
+        )
+
+    mandates.sort(
+        key=lambda mandate: mandate.get("start_date", ""),
+        reverse=True,
+    )
+
+    return mandates
+
+
+def parse_senator_committees(
+    payload: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Convert Senate committee memberships into normalized records."""
+
+    raw_committees = (
+        payload
+        .get("MembroComissaoParlamentar", {})
+        .get("Parlamentar", {})
+        .get("MembroComissoes", {})
+        .get("Comissao", [])
+    )
+    committees = []
+
+    for raw_committee in as_list(raw_committees):
+        identification = raw_committee.get(
+            "IdentificacaoComissao",
+            {},
+        )
+        end_date = raw_committee.get("DataFim", "")
+
+        committees.append(
+            {
+                "id": identification.get("CodigoComissao", ""),
+                "abbreviation": identification.get(
+                    "SiglaComissao",
+                    "",
+                ),
+                "name": identification.get(
+                    "NomeComissao",
+                    "Name not available",
+                ),
+                "house": identification.get(
+                    "SiglaCasaComissao",
+                    "",
+                ),
+                "participation": raw_committee.get(
+                    "DescricaoParticipacao",
+                    "",
+                ),
+                "start_date": raw_committee.get("DataInicio", ""),
+                "end_date": end_date,
+                "is_current": not bool(end_date),
+            }
+        )
+
+    committees.sort(
+        key=lambda committee: (
+            not committee["is_current"],
+            committee.get("name", "").casefold(),
+            committee.get("start_date", ""),
+        )
+    )
+
+    return committees
+
+
 def get_current_sao_paulo_senators() -> list[dict[str, Any]]:
     """Return senators currently serving for São Paulo."""
 
@@ -220,3 +374,61 @@ def get_senator_by_id(senator_id: int) -> dict[str, Any]:
     )
 
     return senator
+
+
+def get_senator_mandates(senator_id: int) -> list[dict[str, Any]]:
+    """Return current and previous mandates with their substitutes."""
+
+    cache_key = f"senator_{senator_id}_mandates"
+    cached_mandates = cache.get(cache_key)
+
+    if cached_mandates is not None:
+        return cached_mandates
+
+    try:
+        response = requests.get(
+            f"{SENATE_API_URL}/senador/{senator_id}/mandatos",
+            headers=REQUEST_HEADERS,
+            timeout=(3.05, 20),
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    except (requests.RequestException, ValueError) as error:
+        raise SenateAPIError(
+            "Senator mandate data is temporarily unavailable."
+        ) from error
+
+    mandates = parse_senator_mandates(payload)
+    cache.set(cache_key, mandates, SENATORS_CACHE_TIMEOUT)
+
+    return mandates
+
+
+def get_senator_committees(senator_id: int) -> list[dict[str, Any]]:
+    """Return current and previous committee memberships."""
+
+    cache_key = f"senator_{senator_id}_committees"
+    cached_committees = cache.get(cache_key)
+
+    if cached_committees is not None:
+        return cached_committees
+
+    try:
+        response = requests.get(
+            f"{SENATE_API_URL}/senador/{senator_id}/comissoes",
+            headers=REQUEST_HEADERS,
+            timeout=(3.05, 20),
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    except (requests.RequestException, ValueError) as error:
+        raise SenateAPIError(
+            "Senator committee data is temporarily unavailable."
+        ) from error
+
+    committees = parse_senator_committees(payload)
+    cache.set(cache_key, committees, SENATORS_CACHE_TIMEOUT)
+
+    return committees

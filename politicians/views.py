@@ -17,6 +17,8 @@ from .services.senate_api import (
     SenateAPIError,
     get_current_sao_paulo_senators,
     get_senator_by_id,
+    get_senator_committees,
+    get_senator_mandates,
 )
 
 
@@ -209,8 +211,40 @@ def senator_detail(request, senator_id):
     if not senator:
         raise Http404("Senator not found.")
 
+    mandates = []
+    mandate_error = None
+
+    try:
+        mandates = get_senator_mandates(senator_id)
+
+    except SenateAPIError as error:
+        mandate_error = str(error)
+
+    committees = []
+    committee_error = None
+
+    try:
+        committees = get_senator_committees(senator_id)
+
+    except SenateAPIError as error:
+        committee_error = str(error)
+
+    current_committees = [
+        committee
+        for committee in committees
+        if committee["is_current"]
+    ]
+
     context = {
         "senator": senator,
+        "mandates": mandates,
+        "mandate_error": mandate_error,
+        "current_committees": current_committees[:8],
+        "current_committees_count": len(current_committees),
+        "past_committees_count": (
+            len(committees) - len(current_committees)
+        ),
+        "committee_error": committee_error,
     }
 
     return render(

@@ -142,6 +142,135 @@
                 </div>
             </section>
 
+            <section class="mandates-section">
+                <div class="profile-section-heading">
+                    <span>Parliamentary terms</span>
+                    <h2>Mandates and substitutes</h2>
+                </div>
+
+                {% if mandate_error %}
+                    <div class="alert" role="alert">
+                        {{ mandate_error }}
+                    </div>
+                {% else %}
+                    <div class="mandates-list">
+                        {% for mandate in mandates %}
+                            <article class="mandate-card">
+                                <div class="mandate-heading">
+                                    <div>
+                                        <span class="information-label">
+                                            Mandate period
+                                        </span>
+                                        <h3>
+                                            {{ mandate.start_date|default:"Unknown start" }}
+                                            —
+                                            {{ mandate.end_date|default:"Unknown end" }}
+                                        </h3>
+                                    </div>
+
+                                    <span class="party-badge">
+                                        {{ mandate.party|default:senator.party|default:"N/A" }}
+                                    </span>
+                                </div>
+
+                                <dl class="mandate-metadata">
+                                    <div>
+                                        <dt>Participation</dt>
+                                        <dd>{{ mandate.participation|default:"Not available" }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>State</dt>
+                                        <dd>{{ mandate.state|default:senator.state|default:"Not available" }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Legislatures</dt>
+                                        <dd>
+                                            {{ mandate.first_legislature|default:"—" }}
+                                            {% if mandate.second_legislature %}
+                                                and {{ mandate.second_legislature }}
+                                            {% endif %}
+                                        </dd>
+                                    </div>
+                                </dl>
+
+                                <div class="substitutes">
+                                    <h4>Registered substitutes</h4>
+
+                                    {% for substitute in mandate.substitutes %}
+                                        <div class="substitute-row">
+                                            <span>{{ substitute.position }}</span>
+                                            <strong>{{ substitute.name }}</strong>
+                                        </div>
+                                    {% empty %}
+                                        <p>No substitutes were returned for this mandate.</p>
+                                    {% endfor %}
+                                </div>
+                            </article>
+                        {% empty %}
+                            <div class="empty-state">
+                                <h3>No mandates found</h3>
+                                <p>The official API returned no mandate records.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="committees-section">
+                <div class="profile-section-heading">
+                    <span>Senate activity</span>
+                    <h2>Committee memberships</h2>
+                </div>
+
+                {% if committee_error %}
+                    <div class="alert" role="alert">
+                        {{ committee_error }}
+                    </div>
+                {% else %}
+                    <div class="committees-summary">
+                        <div>
+                            <strong>{{ current_committees_count }}</strong>
+                            <span>current membership{{ current_committees_count|pluralize }}</span>
+                        </div>
+                        <p>
+                            {{ past_committees_count }} previous
+                            membership{{ past_committees_count|pluralize }}
+                            also appear in the official history.
+                        </p>
+                    </div>
+
+                    <div class="committees-list">
+                        {% for committee in current_committees %}
+                            <article class="committee-card">
+                                <div class="committee-heading">
+                                    <span class="proposition-type">
+                                        {{ committee.abbreviation|default:"Committee" }}
+                                    </span>
+                                    <span class="committee-house">
+                                        {{ committee.house }}
+                                    </span>
+                                </div>
+
+                                <h3>{{ committee.name }}</h3>
+
+                                <div class="committee-membership">
+                                    <span>{{ committee.participation|default:"Member" }}</span>
+                                    <span>Since {{ committee.start_date|default:"date unavailable" }}</span>
+                                </div>
+                            </article>
+                        {% empty %}
+                            <div class="empty-state">
+                                <h3>No current committees found</h3>
+                                <p>
+                                    The official API returned no active
+                                    committee memberships.
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
             <section class="office-section">
                 <div class="profile-section-heading">
                     <span>Data source</span>
