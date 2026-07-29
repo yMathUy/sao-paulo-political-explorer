@@ -347,6 +347,86 @@
                 {% endif %}
             </section>
 
+            <section class="votes-section">
+                <div class="profile-section-heading">
+                    <span>Voting activity</span>
+                    <h2>Nominal votes in {{ current_year }}</h2>
+                </div>
+
+                {% if senate_vote_error %}
+                    <div class="alert" role="alert">
+                        {{ senate_vote_error }}
+                    </div>
+                {% else %}
+                    <div class="votes-summary">
+                        <strong>{{ senate_votes_count }}</strong>
+                        <span>
+                            registered nominal
+                            vote{{ senate_votes_count|pluralize }}
+                        </span>
+                    </div>
+
+                    <div class="votes-list">
+                        {% for senate_vote in senate_votes %}
+                            <article class="vote-card">
+                                <div class="vote-card-header">
+                                    <div>
+                                        <span class="vote-date">
+                                            {{ senate_vote.session_date }}
+                                        </span>
+                                        <span class="vote-organization">
+                                            Session
+                                            {{ senate_vote.session_number|default:"N/A" }}
+                                            · {{ senate_vote.matter|default:"Matter unavailable" }}
+                                        </span>
+                                    </div>
+
+                                    <span class="vote-value">
+                                        {{ senate_vote.vote }}
+                                    </span>
+                                </div>
+
+                                <p>
+                                    {{ senate_vote.description|default:senate_vote.matter_summary|default:"Voting description not available."|truncatechars:300 }}
+                                </p>
+
+                                <div class="vote-result">
+                                    <span>Result</span>
+                                    <strong>
+                                        {{ senate_vote.result|default:"Not available" }}
+                                    </strong>
+
+                                    {% if senate_vote.official_url %}
+                                        <a
+                                            class="vote-official-link"
+                                            href="{{ senate_vote.official_url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            View related matter →
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% empty %}
+                            <div class="empty-votes">
+                                <h3>No nominal votes found</h3>
+                                <p>
+                                    No nominal voting records were returned
+                                    for {{ current_year }}.
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <p class="votes-disclaimer">
+                        This section only includes nominal votes published by
+                        the Senate. A missing record does not by itself mean
+                        that the senator was absent.
+                    </p>
+                {% endif %}
+            </section>
+
             <section class="office-section">
                 <div class="profile-section-heading">
                     <span>Data source</span>

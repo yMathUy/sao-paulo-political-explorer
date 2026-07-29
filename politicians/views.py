@@ -20,6 +20,7 @@ from .services.senate_api import (
     get_senator_by_id,
     get_senator_committees,
     get_senator_mandates,
+    get_senator_votes,
 )
 
 
@@ -256,6 +257,21 @@ def senator_detail(request, senator_id):
         for authorship in current_authorships
     )
 
+    senate_votes = []
+    senate_vote_error = None
+
+    try:
+        senate_votes = get_senator_votes(senator_id)
+
+    except SenateAPIError as error:
+        senate_vote_error = str(error)
+
+    current_senate_votes = [
+        vote
+        for vote in senate_votes
+        if str(vote["session_year"]) == str(current_year)
+    ]
+
     context = {
         "senator": senator,
         "current_year": current_year,
@@ -274,6 +290,9 @@ def senator_detail(request, senator_id):
             len(current_authorships) - primary_authorships_count
         ),
         "authorship_error": authorship_error,
+        "senate_votes": current_senate_votes[:8],
+        "senate_votes_count": len(current_senate_votes),
+        "senate_vote_error": senate_vote_error,
     }
 
     return render(

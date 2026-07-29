@@ -5,6 +5,7 @@ from .services.senate_api import (
     parse_senator_authorships,
     parse_senator_committees,
     parse_senator_mandates,
+    parse_senator_votes,
 )
 
 
@@ -165,3 +166,39 @@ class SenateAuthorshipParserTests(SimpleTestCase):
         self.assertEqual(authorships[0]["description"], "PL 1/2026")
         self.assertTrue(authorships[0]["is_primary_author"])
         self.assertFalse(authorships[1]["is_primary_author"])
+
+
+class SenateVoteParserTests(SimpleTestCase):
+    def test_vote_year_comes_from_session_date(self):
+        payload = {
+            "VotacaoParlamentar": {
+                "Parlamentar": {
+                    "Votacoes": {
+                        "Votacao": {
+                            "SessaoPlenaria": {
+                                "CodigoSessao": "100",
+                                "NumeroSessao": "20",
+                                "DataSessao": "2026-04-10",
+                            },
+                            "Materia": {
+                                "Codigo": "200",
+                                "DescricaoIdentificacao": "PL 1/2024",
+                                "Ano": "2024",
+                                "Ementa": "Matter summary",
+                            },
+                            "CodigoSessaoVotacao": "300",
+                            "DescricaoVotacao": "Nominal vote",
+                            "DescricaoResultado": "Approved",
+                            "SiglaDescricaoVoto": "Sim",
+                        }
+                    }
+                }
+            }
+        }
+
+        votes = parse_senator_votes(payload)
+
+        self.assertEqual(votes[0]["session_year"], "2026")
+        self.assertEqual(votes[0]["matter"], "PL 1/2024")
+        self.assertEqual(votes[0]["vote"], "Sim")
+        self.assertEqual(votes[0]["result"], "Approved")

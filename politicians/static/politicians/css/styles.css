@@ -1048,6 +1048,18 @@ a {
     line-height: 1.5;
 }
 
+.vote-official-link {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 750;
+    margin-top: 6px;
+    text-decoration: none;
+}
+
+.vote-official-link:hover {
+    text-decoration: underline;
+}
+
 .votes-disclaimer {
     color: var(--text-soft);
     font-size: 12px;

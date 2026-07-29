@@ -251,6 +251,94 @@ def parse_senator_authorships(
     return propositions
 
 
+def parse_senator_votes(
+    payload: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Convert Senate nominal voting records into normalized values."""
+
+    raw_votes = (
+        payload
+        .get("VotacaoParlamentar", {})
+        .get("Parlamentar", {})
+        .get("Votacoes", {})
+        .get("Votacao", [])
+    )
+    votes = []
+
+    for raw_vote in as_list(raw_votes):
+        session = raw_vote.get("SessaoPlenaria", {})
+        matter = raw_vote.get("Materia", {})
+        matter_id = matter.get("Codigo", "")
+        session_date = session.get("DataSessao", "")
+
+        votes.append(
+            {
+                "id": raw_vote.get(
+                    "CodigoSessaoVotacao",
+                    "",
+                ),
+                "sequence": raw_vote.get("Sequencial", ""),
+                "session_id": session.get("CodigoSessao", ""),
+                "session_number": session.get("NumeroSessao", ""),
+                "session_type": session.get(
+                    "SiglaTipoSessao",
+                    "",
+                ),
+                "session_date": session_date,
+                "session_year": (
+                    session_date[:4]
+                    if isinstance(session_date, str)
+                    else ""
+                ),
+                "matter_id": matter_id,
+                "matter": matter.get(
+                    "DescricaoIdentificacao",
+                    "",
+                ),
+                "matter_summary": matter.get("Ementa", ""),
+                "description": raw_vote.get(
+                    "DescricaoVotacao",
+                    "",
+                ),
+                "result": raw_vote.get(
+                    "DescricaoResultado",
+                    "",
+                ),
+                "vote": (
+                    raw_vote.get("DescricaoVoto")
+                    or raw_vote.get("SiglaDescricaoVoto")
+                    or "Not informed"
+                ),
+                "is_secret": (
+                    str(
+                        raw_vote.get(
+                            "IndicadorVotacaoSecreta",
+                            "",
+                        )
+                    ).strip().casefold()
+                    in {"sim", "s", "yes", "true", "1"}
+                ),
+                "official_url": (
+                    "https://www25.senado.leg.br/web/atividade/"
+                    f"materias/-/materia/{matter_id}"
+                    if matter_id
+                    else ""
+                ),
+            }
+        )
+
+    votes.sort(
+        key=lambda vote: (
+            vote.get("session_date", ""),
+            vote.get("id", ""),
+            vote.get("sequence", ""),
+        ),
+        reverse=True,
+    )
+
+    return votes
+
+
 def get_current_sao_paulo_senators() -> list[dict[str, Any]]:
     """Return senators currently serving for São Paulo."""
 
@@ -530,3 +618,32 @@ def get_senator_authorships(senator_id: int) -> list[dict[str, Any]]:
     cache.set(cache_key, authorships, SENATORS_CACHE_TIMEOUT)
 
     return authorships
+
+
+def get_senator_votes(senator_id: int) -> list[dict[str, Any]]:
+    """Return nominal voting records published for a senator."""
+
+    cache_key = f"senator_{senator_id}_votes"
+    cached_votes = cache.get(cache_key)
+
+    if cached_votes is not None:
+        return cached_votes
+
+    try:
+        response = requests.get(
+            f"{SENATE_API_URL}/senador/{senator_id}/votacoes",
+            headers=REQUEST_HEADERS,
+            timeout=(3.05, 30),
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    except (requests.RequestException, ValueError) as error:
+        raise SenateAPIError(
+            "Senator voting data is temporarily unavailable."
+        ) from error
+
+    votes = parse_senator_votes(payload)
+    cache.set(cache_key, votes, SENATORS_CACHE_TIMEOUT)
+
+    return votes
