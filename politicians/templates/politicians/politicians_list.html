@@ -68,9 +68,12 @@
                     Federal Deputies
                 </button>
 
-                <button class="category-button" type="button" disabled>
+                <a
+                    class="category-button category-link"
+                    href="{% url 'politicians:senators' %}"
+                >
                     Senators
-                </button>
+                </a>
 
                 <button class="category-button" type="button" disabled>
                     Governor

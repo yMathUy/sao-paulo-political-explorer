@@ -1,0 +1,229 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Explore current senators representing São Paulo."
+    >
+
+    <title>São Paulo Senators | Political Explorer</title>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'politicians/css/styles.css' %}"
+    >
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <a class="brand" href="/">
+                <span class="brand-mark">SP</span>
+
+                <span>Political Explorer</span>
+            </a>
+
+            <nav
+                class="main-navigation"
+                aria-label="Main navigation"
+            >
+                <a href="/">
+                    Politicians
+                </a>
+
+                <a href="#">
+                    Bills
+                </a>
+
+                <a href="#">
+                    Votes
+                </a>
+
+                <a href="#">
+                    Compare
+                </a>
+
+                <a href="#">
+                    Methodology
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-container">
+                <span class="eyebrow">
+                    Federal Senate
+                </span>
+
+                <h1>
+                    Senators representing São Paulo.
+                </h1>
+
+                <p>
+                    Explore official public information about the
+                    senators currently serving the state.
+                </p>
+            </div>
+        </section>
+
+        <section class="page-container">
+            <div class="category-navigation">
+                <a
+                    class="category-button category-link"
+                    href="/"
+                >
+                    Federal Deputies
+                </a>
+
+                <a
+                    class="category-button category-link active"
+                    href="{% url 'politicians:senators' %}"
+                >
+                    Senators
+                </a>
+
+                <button
+                    class="category-button"
+                    type="button"
+                    disabled
+                >
+                    Governor
+                </button>
+
+                <button
+                    class="category-button"
+                    type="button"
+                    disabled
+                >
+                    Mayors
+                </button>
+
+                <button
+                    class="category-button"
+                    type="button"
+                    disabled
+                >
+                    Candidates
+                </button>
+            </div>
+
+            {% if error_message %}
+                <div class="alert" role="alert">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            <div class="results-header">
+                <div>
+                    <h2>Current senators</h2>
+
+                    <p>
+                        Senators currently representing São Paulo
+                        in the Federal Senate.
+                    </p>
+                </div>
+
+                <span class="results-badge">
+                    {{ results_count }}
+                    result{{ results_count|pluralize }}
+                </span>
+            </div>
+
+            <div class="politicians-grid">
+                {% for senator in senators %}
+                    <article class="politician-card">
+                        <div class="politician-photo-wrapper">
+                            <img
+                                class="politician-photo"
+                                src="{{ senator.photo_url }}"
+                                alt="Official portrait of {{ senator.name }}"
+                                width="360"
+                                height="270"
+                                loading="lazy"
+                                decoding="async"
+                            >
+
+                            <span class="position-badge">
+                                Senator
+                            </span>
+                        </div>
+
+                        <div class="politician-content">
+                            <div class="politician-heading">
+                                <h3>
+                                    {{ senator.name }}
+                                </h3>
+
+                                <span class="party-badge">
+                                    {{ senator.party }}
+                                </span>
+                            </div>
+
+                            <p class="politician-location">
+                                São Paulo, Brazil
+                            </p>
+
+                            <p class="senator-civil-name">
+                                {{ senator.civil_name }}
+                            </p>
+
+                            <div class="politician-footer">
+                                <span>
+                                    Federal Senate
+                                </span>
+
+                                {% if senator.profile_url %}
+                                    <a
+                                        class="profile-preview"
+                                        href="{{ senator.profile_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Official profile
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    {% if not error_message %}
+                        <div class="empty-state">
+                            <h3>No senators found</h3>
+
+                            <p>
+                                No current São Paulo senators were
+                                returned by the official API.
+                            </p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p>
+                Public data provided by official Brazilian
+                government sources.
+            </p>
+
+            <p>
+                This project is independent and has no affiliation
+                with political parties or candidates.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

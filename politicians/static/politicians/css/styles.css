@@ -1068,3 +1068,15 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+.category-link {
+    align-items: center;
+    display: inline-flex;
+    text-decoration: none;
+}
+
+.senator-civil-name {
+    color: var(--text-soft);
+    font-size: 13px;
+    margin-top: 6px;
+}

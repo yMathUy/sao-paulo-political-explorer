@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
 
+
 from .models import DeputyVote
 from .services.chamber_api import (
     ChamberAPIError,
@@ -14,6 +15,10 @@ from .services.chamber_api import (
     summarize_expenses,
 )
 
+from .services.senate_api import (
+    SenateAPIError,
+    get_current_sao_paulo_senators,
+)
 
 def politicians_list(request):
     searched_name = request.GET.get("name", "").strip()
@@ -82,6 +87,27 @@ def politicians_list(request):
         context,
     )
 
+def senators_list(request):
+    error_message = None
+    senators = []
+
+    try:
+        senators = get_current_sao_paulo_senators()
+
+    except SenateAPIError as error:
+        error_message = str(error)
+
+    context = {
+        "senators": senators,
+        "results_count": len(senators),
+        "error_message": error_message,
+    }
+
+    return render(
+        request,
+        "politicians/senators_list.html",
+        context,
+    )
 
 def politician_detail(request, deputy_id):
     try:
