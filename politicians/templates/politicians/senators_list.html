@@ -63,6 +63,17 @@
                                     loading="lazy"
                                     decoding="async"
                                 >
+                            {% else %}
+                                <div
+                                    class="politician-photo-placeholder"
+                                    role="img"
+                                    aria-label="Official portrait not available for {{ senator.name }}"
+                                >
+                                    <span aria-hidden="true">
+                                        {{ senator.name|first|upper }}
+                                    </span>
+                                    <small>Photo not available</small>
+                                </div>
                             {% endif %}
 
                             <span class="position-badge">
@@ -86,7 +97,7 @@
                             </p>
 
                             <p class="politician-location">
-                                {{ senator.civil_name }}
+                                {{ senator.civil_name|default:"Civil name not available" }}
                             </p>
 
                             <div class="politician-footer">

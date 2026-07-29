@@ -362,6 +362,36 @@ a {
     width: 100%;
 }
 
+.politician-photo-placeholder,
+.profile-photo-placeholder {
+    align-items: center;
+    background:
+        linear-gradient(145deg, var(--primary-soft), #d5e5ef);
+    color: var(--primary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.politician-photo-placeholder {
+    height: 100%;
+    width: 100%;
+}
+
+.politician-photo-placeholder span,
+.profile-photo-placeholder span {
+    font-size: 48px;
+    font-weight: 800;
+}
+
+.politician-photo-placeholder small,
+.profile-photo-placeholder small {
+    color: var(--text-soft);
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
 .politician-card:hover .politician-photo {
     transform: scale(1.025);
 }

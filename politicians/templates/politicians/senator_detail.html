@@ -26,6 +26,17 @@
                         loading="eager"
                         decoding="async"
                     >
+                {% else %}
+                    <div
+                        class="profile-photo profile-photo-placeholder"
+                        role="img"
+                        aria-label="Official portrait not available for {{ senator.name }}"
+                    >
+                        <span aria-hidden="true">
+                            {{ senator.name|first|upper }}
+                        </span>
+                        <small>Photo not available</small>
+                    </div>
                 {% endif %}
 
                 <div class="profile-main-information">

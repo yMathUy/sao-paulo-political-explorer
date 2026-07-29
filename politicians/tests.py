@@ -1,7 +1,14 @@
+from unittest.mock import Mock, patch
+
+import requests
+from django.core.cache import cache
 from django.template.loader import get_template
 from django.test import SimpleTestCase
 
 from .services.senate_api import (
+    SenateAPIError,
+    get_current_sao_paulo_senators,
+    get_senator_by_id,
     parse_senator_authorships,
     parse_senator_committees,
     parse_senator_mandates,
@@ -202,3 +209,110 @@ class SenateVoteParserTests(SimpleTestCase):
         self.assertEqual(votes[0]["matter"], "PL 1/2024")
         self.assertEqual(votes[0]["vote"], "Sim")
         self.assertEqual(votes[0]["result"], "Approved")
+
+
+class SenateAPIIntegrationTests(SimpleTestCase):
+    def setUp(self):
+        cache.clear()
+
+    @staticmethod
+    def response_with(payload):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = payload
+        return response
+
+    @patch("politicians.services.senate_api.requests.get")
+    def test_current_senators_filters_sao_paulo_and_forces_https(
+        self,
+        mocked_get,
+    ):
+        mocked_get.return_value = self.response_with(
+            {
+                "ListaParlamentarEmExercicio": {
+                    "Parlamentares": {
+                        "Parlamentar": [
+                            {
+                                "IdentificacaoParlamentar": {
+                                    "CodigoParlamentar": "1",
+                                    "NomeParlamentar": "São Paulo Senator",
+                                    "UrlFotoParlamentar": "http://example.test/photo.jpg",
+                                },
+                                "Mandato": {"UfParlamentar": "SP"},
+                            },
+                            {
+                                "IdentificacaoParlamentar": {
+                                    "CodigoParlamentar": "2",
+                                    "NomeParlamentar": "Other Senator",
+                                },
+                                "Mandato": {"UfParlamentar": "RJ"},
+                            },
+                        ]
+                    }
+                }
+            }
+        )
+
+        senators = get_current_sao_paulo_senators()
+
+        self.assertEqual(len(senators), 1)
+        self.assertEqual(senators[0]["id"], "1")
+        self.assertEqual(
+            senators[0]["photo_url"],
+            "https://example.test/photo.jpg",
+        )
+
+    @patch("politicians.services.senate_api.requests.get")
+    def test_current_senators_uses_cached_response(self, mocked_get):
+        mocked_get.return_value = self.response_with(
+            {
+                "ListaParlamentarEmExercicio": {
+                    "Parlamentares": {
+                        "Parlamentar": {
+                            "IdentificacaoParlamentar": {
+                                "CodigoParlamentar": "1",
+                                "NomeParlamentar": "Cached Senator",
+                            },
+                            "Mandato": {"UfParlamentar": "SP"},
+                        }
+                    }
+                }
+            }
+        )
+
+        first_result = get_current_sao_paulo_senators()
+        second_result = get_current_sao_paulo_senators()
+
+        self.assertEqual(first_result, second_result)
+        mocked_get.assert_called_once()
+
+    @patch("politicians.services.senate_api.requests.get")
+    def test_senator_detail_accepts_missing_optional_fields(
+        self,
+        mocked_get,
+    ):
+        mocked_get.return_value = self.response_with(
+            {
+                "DetalheParlamentar": {
+                    "Parlamentar": {
+                        "IdentificacaoParlamentar": {
+                            "CodigoParlamentar": "10",
+                            "NomeParlamentar": "Minimal Senator",
+                        }
+                    }
+                }
+            }
+        )
+
+        senator = get_senator_by_id(10)
+
+        self.assertEqual(senator["name"], "Minimal Senator")
+        self.assertEqual(senator["photo_url"], "")
+        self.assertEqual(senator["email"], "")
+
+    @patch("politicians.services.senate_api.requests.get")
+    def test_api_network_error_becomes_domain_error(self, mocked_get):
+        mocked_get.side_effect = requests.Timeout("timeout")
+
+        with self.assertRaises(SenateAPIError):
+            get_senator_by_id(99)
