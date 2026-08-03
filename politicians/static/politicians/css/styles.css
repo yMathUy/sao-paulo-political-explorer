@@ -1353,8 +1353,197 @@ a {
     font-size: 11px;
 }
 
+.municipal-finances-section {
+    margin-top: 44px;
+}
+
+.municipal-finances-heading {
+    align-items: flex-end;
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+}
+
+.municipal-finances-heading p {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-top: 7px;
+}
+
+.municipal-finance-profiles {
+    display: grid;
+    gap: 22px;
+}
+
+.municipal-finance-profile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    padding: 28px;
+}
+
+.municipal-finance-profile-header {
+    align-items: center;
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.municipal-finance-profile-header h3 {
+    font-size: 23px;
+    letter-spacing: -0.02em;
+    margin-top: 6px;
+}
+
+.finance-status {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 999px;
+    color: #047857;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 750;
+    padding: 6px 10px;
+}
+
+.municipal-finance-summary {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 24px;
+}
+
+.municipal-finance-total {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 134px;
+    padding: 20px;
+}
+
+.municipal-finance-total span,
+.municipal-finance-total small {
+    color: var(--text-soft);
+    font-size: 11px;
+}
+
+.municipal-finance-total span {
+    font-weight: 750;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.municipal-finance-total strong {
+    color: var(--primary);
+    font-size: clamp(22px, 3vw, 30px);
+    letter-spacing: -0.04em;
+    margin: 9px 0 auto;
+}
+
+.asset-total {
+    background: var(--primary-soft);
+    border-color: rgba(47, 116, 159, 0.2);
+}
+
+.revenue-total {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.expense-total {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.municipal-finance-breakdown {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 16px;
+}
+
+.municipal-finance-breakdown > div {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    min-height: 150px;
+    padding: 18px;
+}
+
+.municipal-finance-breakdown h4 {
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.municipal-finance-breakdown p {
+    align-items: flex-start;
+    border-top: 1px solid var(--border);
+    display: flex;
+    font-size: 12px;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 9px 0;
+}
+
+.municipal-finance-breakdown p:first-of-type {
+    border-top: 0;
+}
+
+.municipal-finance-breakdown p span,
+.municipal-finance-breakdown small,
+.empty-finance-state {
+    color: var(--text-soft);
+}
+
+.municipal-finance-breakdown p strong {
+    flex-shrink: 0;
+}
+
+.empty-finance-state {
+    background: var(--surface-soft);
+    border-radius: 12px;
+    font-size: 13px;
+    margin-top: 20px;
+    padding: 20px;
+}
+
+.municipal-finance-disclaimer {
+    margin-top: 14px;
+}
+
+.municipal-finance-person {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+    padding-bottom: 22px;
+}
+
+.municipal-finance-person h3 {
+    font-size: 24px;
+    letter-spacing: -0.025em;
+    margin-top: 6px;
+}
+
+.municipal-finance-metric {
+    margin-top: 34px;
+}
+
+.municipal-finance-metric + .municipal-finance-metric {
+    border-top: 1px solid var(--border);
+    padding-top: 34px;
+}
+
 @media (max-width: 800px) {
     .municipal-officeholders-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .municipal-finance-summary,
+    .municipal-finance-breakdown {
         grid-template-columns: 1fr;
     }
 }
@@ -1367,6 +1556,17 @@ a {
 
     .municipal-profile-grid {
         grid-template-columns: 1fr;
+    }
+
+    .municipal-finances-heading,
+    .municipal-finance-profile-header,
+    .municipal-finance-person {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .municipal-finance-profile {
+        padding: 20px;
     }
 }
 

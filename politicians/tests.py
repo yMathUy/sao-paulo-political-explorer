@@ -22,6 +22,7 @@ from .services.ibge_api import normalize_municipalities
 from .services.tse_candidates import (
     parse_elected_municipal_officeholders,
 )
+from .services.tse_finances import summarize_candidate_rows
 
 
 class SharedTemplateArchitectureTests(SimpleTestCase):
@@ -560,3 +561,39 @@ class TSECandidateParserTests(SimpleTestCase):
             parsed[0]["election_type"],
             "Eleição Suplementar",
         )
+
+
+class TSEFinanceParserTests(SimpleTestCase):
+    def test_summarizes_only_selected_candidates_by_category(self):
+        rows = [
+            {
+                "SQ_CANDIDATO": "10",
+                "VR_RECEITA": "1000,50",
+                "DS_ORIGEM_RECEITA": "Doações pela Internet",
+            },
+            {
+                "SQ_CANDIDATO": "10",
+                "VR_RECEITA": "499,50",
+                "DS_ORIGEM_RECEITA": "Doações pela Internet",
+            },
+            {
+                "SQ_CANDIDATO": "20",
+                "VR_RECEITA": "9000,00",
+                "DS_ORIGEM_RECEITA": "Other",
+            },
+        ]
+
+        summaries = summarize_candidate_rows(
+            rows,
+            {10},
+            "VR_RECEITA",
+            "DS_ORIGEM_RECEITA",
+        )
+
+        self.assertEqual(summaries[10]["total"], 1500)
+        self.assertEqual(summaries[10]["count"], 2)
+        self.assertEqual(
+            summaries[10]["categories"][0]["formatted_amount"],
+            "R$ 1.500,00",
+        )
+        self.assertNotIn(20, summaries)

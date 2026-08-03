@@ -109,5 +109,137 @@
             </div>
         {% endfor %}
     </section>
+
+    <section class="municipal-finances-section">
+        <div class="profile-section-heading">
+            <span>Electoral transparency</span>
+            <h2>Assets and campaign finances</h2>
+        </div>
+
+        {% for officeholder in municipality.officeholders.all %}
+            <article class="municipal-finance-profile">
+                <header class="municipal-finance-person">
+                    <div>
+                        <span class="eyebrow-dark">
+                            {{ officeholder.get_role_display }} · {{ officeholder.party }}
+                        </span>
+                        <h3>{{ officeholder.ballot_name|default:officeholder.name }}</h3>
+                    </div>
+                    <a
+                        class="secondary-action"
+                        href="https://dadosabertos.tse.jus.br/dataset/prestacao-de-contas-eleitorais-2024"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Official TSE data
+                    </a>
+                </header>
+
+                {% if officeholder.finance_data_imported_at %}
+                    <div class="municipal-finance-metric">
+                        <div class="profile-section-heading">
+                            <span>Candidate declaration</span>
+                            <h2>Declared assets</h2>
+                        </div>
+                        <div class="expense-summary">
+                            <div class="expense-total-card">
+                                <span class="information-label">Total declared</span>
+                                <strong>{{ officeholder.formatted_declared_assets_total }}</strong>
+                                <p>
+                                    {{ officeholder.declared_assets_count }} declared
+                                    item{{ officeholder.declared_assets_count|pluralize }}.
+                                </p>
+                            </div>
+                            <div class="expense-categories">
+                                <h3>Main asset types</h3>
+                                {% for category in officeholder.asset_categories %}
+                                    <div class="expense-category">
+                                        <span>{{ category.name }}</span>
+                                        <strong>{{ category.formatted_amount }}</strong>
+                                    </div>
+                                {% empty %}
+                                    <p class="no-expenses-message">
+                                        No declared asset records.
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="municipal-finance-metric">
+                        <div class="profile-section-heading">
+                            <span>Campaign accounts</span>
+                            <h2>Electoral revenue</h2>
+                        </div>
+                        <div class="expense-summary">
+                            <div class="expense-total-card">
+                                <span class="information-label">Total revenue</span>
+                                <strong>{{ officeholder.formatted_campaign_revenue_total }}</strong>
+                                <p>
+                                    {{ officeholder.campaign_revenue_count }} revenue
+                                    record{{ officeholder.campaign_revenue_count|pluralize }}.
+                                </p>
+                            </div>
+                            <div class="expense-categories">
+                                <h3>Main revenue origins</h3>
+                                {% for category in officeholder.revenue_categories %}
+                                    <div class="expense-category">
+                                        <span>{{ category.name }}</span>
+                                        <strong>{{ category.formatted_amount }}</strong>
+                                    </div>
+                                {% empty %}
+                                    <p class="no-expenses-message">
+                                        No individual revenue records.
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="municipal-finance-metric">
+                        <div class="profile-section-heading">
+                            <span>Campaign accounts</span>
+                            <h2>Contracted electoral expenses</h2>
+                        </div>
+                        <div class="expense-summary">
+                            <div class="expense-total-card">
+                                <span class="information-label">Total contracted</span>
+                                <strong>{{ officeholder.formatted_campaign_expense_total }}</strong>
+                                <p>
+                                    {{ officeholder.campaign_expense_count }} expense
+                                    record{{ officeholder.campaign_expense_count|pluralize }}.
+                                </p>
+                            </div>
+                            <div class="expense-categories">
+                                <h3>Main expense types</h3>
+                                {% for category in officeholder.expense_categories %}
+                                    <div class="expense-category">
+                                        <span>{{ category.name }}</span>
+                                        <strong>{{ category.formatted_amount }}</strong>
+                                    </div>
+                                {% empty %}
+                                    <p class="no-expenses-message">
+                                        No individual expense records.
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="no-expenses-message">
+                        Finance data has not been synchronized yet.
+                    </p>
+                {% endif %}
+            </article>
+        {% endfor %}
+
+        <p class="expense-disclaimer municipal-finance-disclaimer">
+            Assets are values declared by the candidate. Revenue and
+            contracted expenses refer to the election campaign, not municipal
+            public spending. Vice-mayors commonly have no individual campaign
+            finance records because the ticket's accounts are filed by the
+            mayoral candidate.
+        </p>
+    </section>
 </section>
 {% endblock %}

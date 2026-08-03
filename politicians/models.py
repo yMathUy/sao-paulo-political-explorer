@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -187,6 +189,28 @@ class MunicipalOfficeholder(models.Model):
     election_round = models.PositiveSmallIntegerField(default=1)
     electoral_status = models.CharField(max_length=60)
     source_url = models.URLField(max_length=500)
+    declared_assets_total = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    declared_assets_count = models.PositiveIntegerField(default=0)
+    asset_categories = models.JSONField(default=list, blank=True)
+    campaign_revenue_total = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    campaign_revenue_count = models.PositiveIntegerField(default=0)
+    revenue_categories = models.JSONField(default=list, blank=True)
+    campaign_expense_total = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    campaign_expense_count = models.PositiveIntegerField(default=0)
+    expense_categories = models.JSONField(default=list, blank=True)
+    finance_data_imported_at = models.DateTimeField(null=True, blank=True)
     imported_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -203,3 +227,21 @@ class MunicipalOfficeholder(models.Model):
             f"{self.get_role_display()} of "
             f"{self.municipality.name}: {self.name}"
         )
+
+    @staticmethod
+    def _format_brl(value):
+        formatted = f"{value:,.2f}"
+        formatted = formatted.replace(",", "_").replace(".", ",")
+        return "R$ " + formatted.replace("_", ".")
+
+    @property
+    def formatted_declared_assets_total(self):
+        return self._format_brl(self.declared_assets_total)
+
+    @property
+    def formatted_campaign_revenue_total(self):
+        return self._format_brl(self.campaign_revenue_total)
+
+    @property
+    def formatted_campaign_expense_total(self):
+        return self._format_brl(self.campaign_expense_total)
