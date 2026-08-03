@@ -94,7 +94,76 @@
             <span class="information-label">Last verified</span>
             <strong>{{ officeholder.last_verified }}</strong>
         </article>
+        <article class="information-card">
+            <span class="information-label">Birthplace</span>
+            <strong>{{ officeholder.birthplace }}</strong>
+        </article>
+        <article class="information-card">
+            <span class="information-label">Election coalition</span>
+            <strong>{{ officeholder.election_coalition }}</strong>
+        </article>
     </div>
+</section>
+
+<section class="career-section">
+    <div class="profile-section-heading">
+        <span>Background</span>
+        <h2>Education and public career</h2>
+    </div>
+
+    <div class="career-grid">
+        <article class="information-card">
+            <span class="information-label">Education</span>
+            <strong>{{ officeholder.education }}</strong>
+        </article>
+
+        <article class="career-card">
+            <span class="information-label">Previous public roles</span>
+            <ul>
+                {% for role in officeholder.previous_roles %}
+                    <li>{{ role }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+    </div>
+</section>
+
+<section class="expenses-section">
+    <div class="profile-section-heading">
+        <span>Public compensation</span>
+        <h2>Official subsidy in {{ officeholder.compensation_year }}</h2>
+    </div>
+
+    <div class="state-compensation-grid">
+        <article class="expense-total-card">
+            <span class="information-label">Monthly gross subsidy</span>
+            <strong>{{ officeholder.monthly_compensation }}</strong>
+            <p>Amount fixed by state law for this office.</p>
+        </article>
+
+        <article class="expense-total-card">
+            <span class="information-label">Annualized reference</span>
+            <strong>{{ officeholder.annualized_compensation }}</strong>
+            <p>
+                Simple projection of twelve monthly subsidies, before
+                deductions and without adding other public expenses.
+            </p>
+        </article>
+    </div>
+
+    <p class="expense-disclaimer">
+        This is remuneration for the office, not the total cost of the
+        governor's or vice-governor's cabinet. Cabinet expenses are recorded
+        in the state budget and cannot be attributed as a personal spending
+        allowance equivalent to CEAP or CEAPS.
+        <a
+            href="{{ officeholder.compensation_source }}"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            View the applicable law.
+        </a>
+    </p>
 </section>
 
 <section class="election-result-section">
@@ -132,6 +201,10 @@
         <div>
             <span class="information-label">Office address</span>
             <strong>{{ officeholder.office_address }}</strong>
+        </div>
+        <div>
+            <span class="information-label">Institutional phone</span>
+            <strong>{{ officeholder.office_phone }}</strong>
         </div>
     </div>
 </section>

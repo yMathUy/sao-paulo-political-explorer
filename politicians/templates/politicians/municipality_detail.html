@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ municipality.name }} Municipal Executive | Political Explorer{% endblock %}
+{% block meta_description %}Electoral profile of the mayor and vice-mayor of {{ municipality.name }}, based on official TSE and IBGE data.{% endblock %}
+
+{% block content %}
+<section class="page-container politician-detail-page">
+    <a class="back-link" href="{% url 'politicians:municipalities' %}">
+        &larr; Back to municipalities
+    </a>
+
+    <header class="municipality-detail-header">
+        <span class="eyebrow-dark">Municipal executive</span>
+        <h1>{{ municipality.name }}</h1>
+        <p>
+            IBGE {{ municipality.ibge_code }} ·
+            {{ municipality.immediate_region|default:"Region not available" }}
+        </p>
+    </header>
+
+    <div class="alert municipal-status-notice">
+        These profiles show the latest elected mayor and vice-mayor found
+        in the TSE 2024 dataset, including supplementary elections.
+        Electoral results do not by themselves confirm who currently
+        occupies the office after resignations, removals or succession.
+    </div>
+
+    <section class="municipal-officeholders-grid">
+        {% for officeholder in municipality.officeholders.all %}
+            <article class="municipal-officeholder-card">
+                <div class="municipal-officeholder-heading">
+                    <div>
+                        <span class="eyebrow-dark">
+                            {{ officeholder.get_role_display }}
+                        </span>
+                        <h2>
+                            {{ officeholder.ballot_name|default:officeholder.name }}
+                        </h2>
+                        {% if officeholder.ballot_name and officeholder.ballot_name != officeholder.name %}
+                            <p>{{ officeholder.name }}</p>
+                        {% endif %}
+                    </div>
+                    <span class="party-badge">{{ officeholder.party }}</span>
+                </div>
+
+                <dl class="municipal-profile-grid">
+                    <div>
+                        <dt>Occupation</dt>
+                        <dd>{{ officeholder.occupation|default:"Not available" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Education</dt>
+                        <dd>{{ officeholder.education|default:"Not available" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Birth date</dt>
+                        <dd>{{ officeholder.birth_date|date:"d/m/Y"|default:"Not available" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Gender</dt>
+                        <dd>{{ officeholder.gender|default:"Not available" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Race/color</dt>
+                        <dd>{{ officeholder.race|default:"Not available" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Marital status</dt>
+                        <dd>{{ officeholder.marital_status|default:"Not available" }}</dd>
+                    </div>
+                </dl>
+
+                <div class="municipal-election-box">
+                    <div>
+                        <span>Election</span>
+                        <strong>{{ officeholder.election_type }}</strong>
+                    </div>
+                    <div>
+                        <span>Date and round</span>
+                        <strong>
+                            {{ officeholder.election_date|date:"d/m/Y" }}
+                            · round {{ officeholder.election_round }}
+                        </strong>
+                    </div>
+                    <div>
+                        <span>Coalition</span>
+                        <strong>
+                            {{ officeholder.coalition_name|default:officeholder.party_name }}
+                        </strong>
+                        {% if officeholder.coalition_composition %}
+                            <small>{{ officeholder.coalition_composition }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a
+                    class="secondary-action"
+                    href="{{ officeholder.source_url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View official TSE dataset
+                </a>
+            </article>
+        {% empty %}
+            <div class="empty-state">
+                <h3>Electoral data not synchronized</h3>
+                <p>Run the TSE municipal officeholder synchronization.</p>
+            </div>
+        {% endfor %}
+    </section>
+</section>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}São Paulo Municipalities | Political Explorer{% endblock %}
+{% block meta_description %}Search the 645 official municipalities of São Paulo and explore their local executive offices.{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-container">
+        <span class="eyebrow">Municipal government</span>
+        <h1>Explore São Paulo's municipalities.</h1>
+        <p>
+            Search the official IBGE directory. Mayor and vice-mayor data
+            will combine electoral results with current-office verification.
+        </p>
+    </div>
+</section>
+
+<section class="page-container">
+    {% include "includes/politician_categories.html" with active_category="mayors" %}
+
+    <form class="search-panel municipality-search" method="get">
+        <div class="search-field name-field">
+            <label for="name">Municipality name</label>
+            <div class="input-container">
+                <span class="search-icon" aria-hidden="true">&#128269;</span>
+                <input
+                    id="name"
+                    name="name"
+                    type="search"
+                    placeholder="Search municipality"
+                    value="{{ searched_name }}"
+                >
+            </div>
+        </div>
+        <button class="search-button" type="submit">Search</button>
+        {% if searched_name %}
+            <a
+                class="clear-button"
+                href="{% url 'politicians:municipalities' %}"
+            >
+                Clear
+            </a>
+        {% endif %}
+    </form>
+
+    <div class="results-header">
+        <div>
+            <h2>São Paulo municipalities</h2>
+            <p>Official territorial directory maintained by IBGE.</p>
+        </div>
+        <span class="results-badge">
+            {{ results_count }} result{{ results_count|pluralize }}
+        </span>
+    </div>
+
+    <div class="municipalities-grid">
+        {% for municipality in page_obj %}
+            <article class="municipality-card">
+                <div class="municipality-code">
+                    IBGE {{ municipality.ibge_code }}
+                </div>
+                <h3>{{ municipality.name }}</h3>
+                <dl>
+                    <div>
+                        <dt>Immediate region</dt>
+                        <dd>
+                            {{ municipality.immediate_region|default:"Not available" }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>Intermediate region</dt>
+                        <dd>
+                            {{ municipality.intermediate_region|default:"Not available" }}
+                        </dd>
+                    </div>
+                </dl>
+                {% with mayor=municipality.mayor %}
+                    {% if mayor %}
+                        <div class="municipal-office-preview">
+                            <span>Mayor elected</span>
+                            <strong>{{ mayor.ballot_name|default:mayor.name }}</strong>
+                            <small>{{ mayor.party }}</small>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                <a
+                    class="profile-preview"
+                    href="{% url 'politicians:municipality_detail' municipality.slug %}"
+                >
+                    View municipal executive
+                </a>
+            </article>
+        {% empty %}
+            <div class="empty-state">
+                {% if municipalities_available %}
+                    <h3>No municipalities found</h3>
+                    <p>Try changing the municipality name.</p>
+                    <a href="{% url 'politicians:municipalities' %}">
+                        Clear search
+                    </a>
+                {% else %}
+                    <h3>Municipalities have not been synchronized</h3>
+                    <p>
+                        Run the IBGE synchronization command before using
+                        this directory.
+                    </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Municipality pagination">
+            {% if page_obj.has_previous %}
+                <a href="?name={{ searched_name|urlencode }}&page={{ page_obj.previous_page_number }}">
+                    Previous
+                </a>
+            {% else %}
+                <span class="disabled">Previous</span>
+            {% endif %}
+
+            <span class="page-information">
+                Page {{ page_obj.number }}
+                of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?name={{ searched_name|urlencode }}&page={{ page_obj.next_page_number }}">
+                    Next
+                </a>
+            {% else %}
+                <span class="disabled">Next</span>
+            {% endif %}
+        </nav>
+    {% endif %}
+</section>
+{% endblock %}

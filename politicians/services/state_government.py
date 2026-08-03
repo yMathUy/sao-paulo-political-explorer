@@ -6,6 +6,10 @@ ELECTION_SOURCE = (
     "tarcisio-de-freitas-republicanos-vence-disputa-pelo-"
     "governo-de-sao-paulo"
 )
+COMPENSATION_SOURCE = (
+    "https://www.al.sp.gov.br/repositorio/legislacao/lei/2025/"
+    "lei-18385-23.12.2025.html"
+)
 
 STATE_EXECUTIVE = [
     {
@@ -25,7 +29,25 @@ STATE_EXECUTIVE = [
         "election_round": "Second round",
         "election_votes": 12_576_778,
         "election_vote_share": "55.34%",
+        "monthly_compensation": "R$ 36.301,53",
+        "annualized_compensation": "R$ 435.618,36",
+        "compensation_year": 2026,
         "running_mate": "Felicio Ramuth",
+        "birthplace": "Rio de Janeiro, RJ",
+        "education": (
+            "Civil Engineering and a master's degree in Transport "
+            "Engineering from the Military Institute of Engineering; "
+            "Military Sciences from Academia Militar das Agulhas Negras."
+        ),
+        "previous_roles": [
+            "Minister of Infrastructure",
+            "Executive Director of DNIT",
+            "Audit coordinator at the Office of the Comptroller General",
+            "Brazilian Army officer",
+        ],
+        "election_coalition": (
+            "São Paulo Pode Mais — Republicanos, PL, PSD, PTB, PSC and PMN"
+        ),
         "biography": (
             "Engineer and federal public servant. Before the 2022 "
             "election, he served as Brazil's Minister of Infrastructure."
@@ -34,10 +56,12 @@ STATE_EXECUTIVE = [
             "Palácio dos Bandeirantes, Avenida Morumbi, 4500, "
             "São Paulo, SP"
         ),
+        "office_phone": "(11) 2193-8000",
         "office_source": (
             "https://www.sp.gov.br/sp/institucional/estrutura/governador"
         ),
         "election_source": ELECTION_SOURCE,
+        "compensation_source": COMPENSATION_SOURCE,
         "last_verified": "2026-07-29",
     },
     {
@@ -58,7 +82,22 @@ STATE_EXECUTIVE = [
         "election_round": "Second round",
         "election_votes": 12_576_778,
         "election_vote_share": "55.34%",
+        "monthly_compensation": "R$ 34.486,63",
+        "annualized_compensation": "R$ 413.839,56",
+        "compensation_year": 2026,
         "running_mate": "Tarcísio de Freitas",
+        "birthplace": "São José dos Campos, SP",
+        "education": (
+            "Business Administration, with postgraduate studies in "
+            "Public Management at Fundação Getulio Vargas."
+        ),
+        "previous_roles": [
+            "Mayor of São José dos Campos",
+            "Municipal Secretary of Transport of São José dos Campos",
+        ],
+        "election_coalition": (
+            "São Paulo Pode Mais — Republicanos, PL, PSD, PTB, PSC and PMN"
+        ),
         "biography": (
             "Elected vice governor of São Paulo on the winning ticket "
             "in the second round of the 2022 state election."
@@ -67,11 +106,13 @@ STATE_EXECUTIVE = [
             "Palácio dos Bandeirantes, Avenida Morumbi, 4500, "
             "São Paulo, SP"
         ),
+        "office_phone": "(11) 2193-8000",
         "office_source": (
             "https://www.sp.gov.br/sp/institucional/estrutura/"
             "vice-governador"
         ),
         "election_source": ELECTION_SOURCE,
+        "compensation_source": COMPENSATION_SOURCE,
         "last_verified": "2026-07-29",
     },
 ]

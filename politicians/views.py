@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render
 
-from .models import DeputyVote
+from .models import DeputyVote, Municipality
 from .services.chamber_api import (
     ChamberAPIError,
     get_deputy_by_id,
@@ -352,4 +352,53 @@ def state_officeholder_detail(request, slug):
         request,
         "politicians/state_officeholder_detail.html",
         {"officeholder": officeholder},
+    )
+
+
+def municipalities_list(request):
+    searched_name = request.GET.get("name", "").strip()
+    municipalities = Municipality.objects.prefetch_related(
+        "officeholders"
+    )
+
+    if searched_name:
+        municipalities = municipalities.filter(
+            name__icontains=searched_name
+        )
+
+    paginator = Paginator(municipalities, 24)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(
+        request,
+        "politicians/municipalities_list.html",
+        {
+            "page_obj": page_obj,
+            "searched_name": searched_name,
+            "results_count": municipalities.count(),
+            "municipalities_available": (
+                Municipality.objects.exists()
+            ),
+        },
+    )
+
+
+def municipality_detail(request, slug):
+    try:
+        municipality = (
+            Municipality.objects
+            .prefetch_related("officeholders")
+            .get(slug=slug)
+        )
+    except Municipality.DoesNotExist as error:
+        raise Http404("Municipality not found.") from error
+
+    return render(
+        request,
+        "politicians/municipality_detail.html",
+        {
+            "municipality": municipality,
+            "mayor": municipality.mayor,
+            "vice_mayor": municipality.vice_mayor,
+        },
     )

@@ -108,3 +108,98 @@ class DeputyVote(models.Model):
             f"{self.deputy_name or self.deputy_id}: "
             f"{self.vote}"
         )
+
+
+class Municipality(models.Model):
+    """An official São Paulo municipality published by IBGE."""
+
+    ibge_code = models.PositiveIntegerField(primary_key=True)
+    name = models.CharField(max_length=150, db_index=True)
+    slug = models.SlugField(max_length=180, unique=True)
+    state = models.CharField(max_length=2, default="SP")
+    immediate_region = models.CharField(max_length=150, blank=True)
+    intermediate_region = models.CharField(max_length=150, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "municipalities"
+
+    def __str__(self):
+        return f"{self.name} ({self.state})"
+
+    @property
+    def mayor(self):
+        return next(
+            (
+                officeholder
+                for officeholder in self.officeholders.all()
+                if officeholder.role
+                == MunicipalOfficeholder.Role.MAYOR
+            ),
+            None,
+        )
+
+    @property
+    def vice_mayor(self):
+        return next(
+            (
+                officeholder
+                for officeholder in self.officeholders.all()
+                if officeholder.role
+                == MunicipalOfficeholder.Role.VICE_MAYOR
+            ),
+            None,
+        )
+
+
+class MunicipalOfficeholder(models.Model):
+    """A mayor or vice-mayor elected in data published by the TSE."""
+
+    class Role(models.TextChoices):
+        MAYOR = "MAYOR", "Mayor"
+        VICE_MAYOR = "VICE_MAYOR", "Vice-mayor"
+
+    municipality = models.ForeignKey(
+        Municipality,
+        on_delete=models.CASCADE,
+        related_name="officeholders",
+    )
+    role = models.CharField(max_length=20, choices=Role.choices)
+    tse_candidate_id = models.PositiveBigIntegerField(db_index=True)
+    tse_municipality_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255)
+    ballot_name = models.CharField(max_length=255, blank=True)
+    social_name = models.CharField(max_length=255, blank=True)
+    party = models.CharField(max_length=30, blank=True)
+    party_name = models.CharField(max_length=150, blank=True)
+    coalition_name = models.CharField(max_length=255, blank=True)
+    coalition_composition = models.TextField(blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    birth_state = models.CharField(max_length=2, blank=True)
+    gender = models.CharField(max_length=40, blank=True)
+    education = models.CharField(max_length=100, blank=True)
+    marital_status = models.CharField(max_length=60, blank=True)
+    race = models.CharField(max_length=40, blank=True)
+    occupation = models.CharField(max_length=150, blank=True)
+    election_date = models.DateField()
+    election_type = models.CharField(max_length=100)
+    election_round = models.PositiveSmallIntegerField(default=1)
+    electoral_status = models.CharField(max_length=60)
+    source_url = models.URLField(max_length=500)
+    imported_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["role", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["municipality", "role"],
+                name="unique_municipal_officeholder_role",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.get_role_display()} of "
+            f"{self.municipality.name}: {self.name}"
+        )

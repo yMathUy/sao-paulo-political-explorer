@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import requests
 from django.core.cache import cache
 from django.template.loader import get_template
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from .services.senate_api import (
@@ -16,6 +16,11 @@ from .services.senate_api import (
     parse_senator_mandates,
     parse_senator_votes,
     summarize_senator_expenses,
+)
+from .models import Municipality, MunicipalOfficeholder
+from .services.ibge_api import normalize_municipalities
+from .services.tse_candidates import (
+    parse_elected_municipal_officeholders,
 )
 
 
@@ -31,6 +36,8 @@ class SharedTemplateArchitectureTests(SimpleTestCase):
             "politicians/senator_detail.html",
             "politicians/state_executive_list.html",
             "politicians/state_officeholder_detail.html",
+            "politicians/municipalities_list.html",
+            "politicians/municipality_detail.html",
         ]
 
         for template_name in template_names:
@@ -402,6 +409,11 @@ class StateExecutiveViewTests(SimpleTestCase):
         self.assertContains(response, "Verify current office")
         self.assertContains(response, "View election source")
         self.assertContains(response, "55.34%")
+        self.assertContains(response, "R$ 36.301,53")
+        self.assertContains(response, "R$ 435.618,36")
+        self.assertContains(response, "not the total cost")
+        self.assertContains(response, "Minister of Infrastructure")
+        self.assertContains(response, "Election coalition")
 
     def test_unknown_officeholder_returns_not_found(self):
         response = self.client.get(
@@ -412,3 +424,139 @@ class StateExecutiveViewTests(SimpleTestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class IBGEMunicipalityParserTests(SimpleTestCase):
+    def test_normalizes_regions_and_official_code(self):
+        municipalities = normalize_municipalities(
+            [
+                {
+                    "id": 3550308,
+                    "nome": "São Paulo",
+                    "regiao-imediata": {
+                        "nome": "São Paulo",
+                        "regiao-intermediaria": {
+                            "nome": "São Paulo",
+                        },
+                    },
+                }
+            ]
+        )
+
+        self.assertEqual(municipalities[0]["ibge_code"], 3550308)
+        self.assertEqual(municipalities[0]["state"], "SP")
+        self.assertEqual(
+            municipalities[0]["immediate_region"],
+            "São Paulo",
+        )
+
+
+class MunicipalityViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Municipality.objects.create(
+            ibge_code=3550308,
+            name="São Paulo",
+            slug="sao-paulo-3550308",
+            immediate_region="São Paulo",
+            intermediate_region="São Paulo",
+        )
+        Municipality.objects.create(
+            ibge_code=3509502,
+            name="Campinas",
+            slug="campinas-3509502",
+            immediate_region="Campinas",
+            intermediate_region="Campinas",
+        )
+
+    def test_municipality_search_filters_by_name(self):
+        response = self.client.get(
+            reverse("politicians:municipalities"),
+            {"name": "Campinas"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Campinas")
+        self.assertNotContains(response, "São Paulo</h3>")
+
+    def test_municipality_detail_displays_elected_mayor(self):
+        municipality = Municipality.objects.get(
+            ibge_code=3509502
+        )
+        MunicipalOfficeholder.objects.create(
+            municipality=municipality,
+            role=MunicipalOfficeholder.Role.MAYOR,
+            tse_candidate_id=123,
+            tse_municipality_code="62910",
+            name="Test Mayor",
+            ballot_name="Mayor Test",
+            party="ABC",
+            occupation="Engineer",
+            education="Higher Education",
+            election_date="2024-10-06",
+            election_type="Ordinary Election",
+            electoral_status="Elected",
+            source_url="https://dadosabertos.tse.jus.br/",
+        )
+
+        response = self.client.get(
+            reverse(
+                "politicians:municipality_detail",
+                kwargs={"slug": municipality.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mayor Test")
+        self.assertContains(response, "Engineer")
+        self.assertContains(response, "do not by themselves confirm")
+
+
+class TSECandidateParserTests(SimpleTestCase):
+    def test_selects_latest_elected_candidate_per_role(self):
+        base = {
+            "SG_UF": "SP",
+            "NM_UE": "CAMPINAS",
+            "DS_CARGO": "PREFEITO",
+            "DS_SIT_TOT_TURNO": "ELEITO",
+            "NR_TURNO": "1",
+            "SG_UE": "62910",
+            "NM_URNA_CANDIDATO": "TEST",
+            "NM_SOCIAL_CANDIDATO": "#NULO",
+            "SG_PARTIDO": "ABC",
+            "NM_PARTIDO": "PARTY",
+            "NM_COLIGACAO": "COALITION",
+            "DS_COMPOSICAO_COLIGACAO": "ABC / DEF",
+            "SG_UF_NASCIMENTO": "SP",
+            "DT_NASCIMENTO": "01/01/1980",
+            "DS_GENERO": "MASCULINO",
+            "DS_GRAU_INSTRUCAO": "SUPERIOR COMPLETO",
+            "DS_ESTADO_CIVIL": "CASADO(A)",
+            "DS_COR_RACA": "BRANCA",
+            "DS_OCUPACAO": "ENGENHEIRO",
+            "NM_TIPO_ELEICAO": "ELEIÇÃO ORDINÁRIA",
+        }
+        rows = [
+            {
+                **base,
+                "SQ_CANDIDATO": "1",
+                "NM_CANDIDATO": "OLD MAYOR",
+                "DT_ELEICAO": "06/10/2024",
+            },
+            {
+                **base,
+                "SQ_CANDIDATO": "2",
+                "NM_CANDIDATO": "NEW MAYOR",
+                "DT_ELEICAO": "21/06/2026",
+                "NM_TIPO_ELEICAO": "ELEIÇÃO SUPLEMENTAR",
+            },
+        ]
+
+        parsed = parse_elected_municipal_officeholders(rows)
+
+        self.assertEqual(len(parsed), 1)
+        self.assertEqual(parsed[0]["name"], "New Mayor")
+        self.assertEqual(
+            parsed[0]["election_type"],
+            "Eleição Suplementar",
+        )

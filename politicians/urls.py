@@ -36,4 +36,14 @@ urlpatterns = [
         views.state_officeholder_detail,
         name="state_officeholder_detail",
     ),
+    path(
+        "municipalities/",
+        views.municipalities_list,
+        name="municipalities",
+    ),
+    path(
+        "municipalities/<slug:slug>/",
+        views.municipality_detail,
+        name="municipality_detail",
+    ),
 ]
