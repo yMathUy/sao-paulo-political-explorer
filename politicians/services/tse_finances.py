@@ -7,15 +7,23 @@ from decimal import Decimal, InvalidOperation
 import requests
 
 
-TSE_ASSETS_URL = (
-    "https://cdn.tse.jus.br/estatistica/sead/odsele/"
-    "bem_candidato/bem_candidato_2024.zip"
-)
-TSE_ACCOUNTS_URL = (
-    "https://cdn.tse.jus.br/estatistica/sead/odsele/"
-    "prestacao_contas/"
-    "prestacao_de_contas_eleitorais_candidatos_2024.zip"
-)
+def assets_archive_url(year):
+    return (
+        "https://cdn.tse.jus.br/estatistica/sead/odsele/"
+        f"bem_candidato/bem_candidato_{year}.zip"
+    )
+
+
+TSE_ASSETS_URL = assets_archive_url(2024)
+def accounts_archive_url(year):
+    return (
+        "https://cdn.tse.jus.br/estatistica/sead/odsele/"
+        "prestacao_contas/"
+        f"prestacao_de_contas_eleitorais_candidatos_{year}.zip"
+    )
+
+
+TSE_ACCOUNTS_URL = accounts_archive_url(2024)
 TSE_ACCOUNTS_DATASET_URL = (
     "https://dadosabertos.tse.jus.br/dataset/"
     "prestacao-de-contas-eleitorais-2024"
@@ -253,3 +261,84 @@ def get_municipal_candidate_finances(candidate_ids):
         "revenues": revenues,
         "expenses": expenses,
     }
+
+
+def get_candidate_assets(candidate_ids, year=2024):
+    try:
+        with HTTPRangeReader(assets_archive_url(year)) as remote_file:
+            with zipfile.ZipFile(remote_file) as archive:
+                text, rows = _read_sp_csv(
+                    archive,
+                    f"bem_candidato_{year}_SP.csv",
+                )
+                with text:
+                    return summarize_candidate_rows(
+                        rows,
+                        set(candidate_ids),
+                        "VR_BEM_CANDIDATO",
+                        "DS_TIPO_BEM_CANDIDATO",
+                    )
+    except (
+        requests.RequestException,
+        zipfile.BadZipFile,
+        KeyError,
+        OSError,
+        ValueError,
+    ) as error:
+        raise TSEFinancesError(
+            "Could not load official TSE asset data."
+        ) from error
+
+
+def get_candidate_revenues(candidate_ids, year=2024):
+    try:
+        with HTTPRangeReader(accounts_archive_url(year)) as remote_file:
+            with zipfile.ZipFile(remote_file) as archive:
+                text, rows = _read_sp_csv(
+                    archive,
+                    f"receitas_candidatos_{year}_SP.csv",
+                )
+                with text:
+                    return summarize_candidate_rows(
+                        rows,
+                        set(candidate_ids),
+                        "VR_RECEITA",
+                        "DS_ORIGEM_RECEITA",
+                    )
+    except (
+        requests.RequestException,
+        zipfile.BadZipFile,
+        KeyError,
+        OSError,
+        ValueError,
+    ) as error:
+        raise TSEFinancesError(
+            "Could not load official TSE campaign revenue data."
+        ) from error
+
+
+def get_candidate_expenses(candidate_ids, year):
+    try:
+        with HTTPRangeReader(accounts_archive_url(year)) as remote_file:
+            with zipfile.ZipFile(remote_file) as archive:
+                text, rows = _read_sp_csv(
+                    archive,
+                    f"despesas_contratadas_candidatos_{year}_SP.csv",
+                )
+                with text:
+                    return summarize_candidate_rows(
+                        rows,
+                        set(candidate_ids),
+                        "VR_DESPESA_CONTRATADA",
+                        "DS_ORIGEM_DESPESA",
+                    )
+    except (
+        requests.RequestException,
+        zipfile.BadZipFile,
+        KeyError,
+        OSError,
+        ValueError,
+    ) as error:
+        raise TSEFinancesError(
+            "Could not load official TSE campaign expense data."
+        ) from error

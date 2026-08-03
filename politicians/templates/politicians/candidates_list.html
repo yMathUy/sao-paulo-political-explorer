@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates and Elections | Political Explorer{% endblock %}
+{% block meta_description %}Search São Paulo candidacies published by the Brazilian Electoral Court.{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-container">
+        <span class="eyebrow">Elections</span>
+        <h1>Explore São Paulo candidacies.</h1>
+        <p>
+            Search the official TSE electoral record by election, office,
+            party, municipality and result.
+        </p>
+    </div>
+</section>
+
+<section class="page-container">
+    {% include "includes/politician_categories.html" with active_category="candidates" %}
+
+    <form class="search-panel candidate-search" method="get">
+        <div class="search-field candidate-name-field">
+            <label for="name">Candidate name</label>
+            <div class="input-container">
+                <span class="search-icon" aria-hidden="true">&#128269;</span>
+                <input id="name" name="name" type="search" value="{{ searched_name }}" placeholder="Search candidate">
+            </div>
+        </div>
+        <div class="search-field">
+            <label for="year">Election year</label>
+            <select id="year" name="year">
+                <option value="">All years</option>
+                {% for year in years %}<option value="{{ year }}" {% if selected_year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="search-field">
+            <label for="office">Office</label>
+            <select id="office" name="office">
+                <option value="">All offices</option>
+                {% for office in offices %}<option value="{{ office }}" {% if selected_office == office %}selected{% endif %}>{{ office }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="search-field">
+            <label for="party">Party</label>
+            <select id="party" name="party">
+                <option value="">All parties</option>
+                {% for party in parties %}<option value="{{ party }}" {% if selected_party == party %}selected{% endif %}>{{ party }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="search-field">
+            <label for="municipality">Municipality</label>
+            <select id="municipality" name="municipality">
+                <option value="">All municipalities</option>
+                {% for municipality in municipalities %}<option value="{{ municipality.slug }}" {% if selected_municipality == municipality.slug %}selected{% endif %}>{{ municipality.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="search-field">
+            <label for="status">Result</label>
+            <select id="status" name="status">
+                <option value="">All results</option>
+                {% for status in statuses %}<option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+            </select>
+        </div>
+        <button class="search-button" type="submit">Search</button>
+        <a class="clear-button" href="{% url 'politicians:candidates' %}">Clear</a>
+    </form>
+
+    <div class="results-header">
+        <div>
+            <h2>Electoral candidacies</h2>
+            <p>Each card represents a candidacy in a specific election.</p>
+        </div>
+        <span class="results-badge">{{ results_count }} result{{ results_count|pluralize }}</span>
+    </div>
+
+    <div class="politicians-grid">
+        {% for candidate in page_obj %}
+            <a
+                class="politician-card politician-card-link candidate-list-card"
+                href="{% url 'politicians:candidate_detail' candidate.tse_candidate_id %}"
+            >
+                <div class="politician-photo-wrapper">
+                    <img
+                        class="politician-photo"
+                        src="{% url 'politicians:candidate_photo' candidate.tse_candidate_id %}"
+                        alt="Official electoral portrait of {{ candidate.ballot_name|default:candidate.name }}"
+                        loading="lazy"
+                    >
+                    <span class="position-badge">
+                        {{ candidate.office }} · {{ candidate.election_year }}
+                    </span>
+                    <span class="candidate-number-badge">
+                        {{ candidate.candidate_number }}
+                    </span>
+                </div>
+                <div class="politician-content">
+                    <div class="politician-heading">
+                        <h3>{{ candidate.ballot_name|default:candidate.name }}</h3>
+                        <span class="party-badge">{{ candidate.party }}</span>
+                    </div>
+                    <p class="politician-location">
+                        {{ candidate.municipality.name|default:"São Paulo" }}
+                    </p>
+                    <div class="politician-footer candidate-result-footer">
+                        <span>{{ candidate.candidacy_status }}</span>
+                        <strong>{{ candidate.result_status|default:"No result" }}</strong>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                {% if candidates_available %}
+                    <h3>No candidacies found</h3>
+                    <p>Try changing one or more filters.</p>
+                {% else %}
+                    <h3>Candidates have not been synchronized</h3>
+                    <p>Run the TSE candidate synchronization command.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Candidate pagination">
+            {% if page_obj.has_previous %}<a href="?name={{ searched_name|urlencode }}&year={{ selected_year|urlencode }}&office={{ selected_office|urlencode }}&party={{ selected_party|urlencode }}&municipality={{ selected_municipality|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>{% else %}<span class="disabled">Previous</span>{% endif %}
+            <span class="page-information">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?name={{ searched_name|urlencode }}&year={{ selected_year|urlencode }}&office={{ selected_office|urlencode }}&party={{ selected_party|urlencode }}&municipality={{ selected_municipality|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>{% else %}<span class="disabled">Next</span>{% endif %}
+        </nav>
+    {% endif %}
+</section>
+{% endblock %}

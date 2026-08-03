@@ -46,4 +46,24 @@ urlpatterns = [
         views.municipality_detail,
         name="municipality_detail",
     ),
+    path(
+        "candidates/",
+        views.candidates_list,
+        name="candidates",
+    ),
+    path(
+        "candidates/<int:candidate_id>/",
+        views.candidate_detail,
+        name="candidate_detail",
+    ),
+    path(
+        "candidates/<int:candidate_id>/photo/",
+        views.candidate_photo,
+        name="candidate_photo",
+    ),
+    path(
+        "candidates/<int:candidate_id>/proposal/",
+        views.candidate_proposal,
+        name="candidate_proposal",
+    ),
 ]

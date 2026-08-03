@@ -1276,6 +1276,34 @@ a {
     margin-top: 24px;
 }
 
+.municipal-officeholders-list {
+    display: grid;
+    gap: 42px;
+    margin-top: 24px;
+}
+
+.municipal-officeholder-profile {
+    border-bottom: 1px solid var(--border-strong);
+    padding-bottom: 42px;
+}
+
+.municipal-officeholder-profile:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.municipal-officeholder-profile-header h2 {
+    font-size: clamp(32px, 5vw, 52px);
+    letter-spacing: -0.04em;
+    margin: 8px 0;
+}
+
+.municipal-officeholder-profile .information-card small {
+    color: var(--text-soft);
+    font-size: 11px;
+    margin-top: 5px;
+}
+
 .municipal-officeholder-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -1625,6 +1653,159 @@ a {
 .category-button.disabled {
     cursor: not-allowed;
     opacity: 0.55;
+}
+
+.candidate-search {
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+}
+
+.candidate-name-field {
+    grid-column: span 2;
+}
+
+.candidate-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    color: inherit;
+    display: flex;
+    min-height: 210px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.candidate-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-3px);
+}
+
+.candidate-number {
+    align-items: center;
+    background: var(--primary);
+    color: #ffffff;
+    display: flex;
+    font-size: 26px;
+    font-weight: 850;
+    justify-content: center;
+    min-width: 78px;
+    writing-mode: vertical-rl;
+}
+
+.candidate-number-badge {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 850;
+    padding: 6px 10px;
+    position: absolute;
+    right: 12px;
+    top: 12px;
+}
+
+.candidate-result-footer {
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.candidate-result-footer strong {
+    color: var(--primary);
+    text-align: right;
+}
+
+.candidate-card-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.candidate-card-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.candidate-card-heading > div > span,
+.candidate-card-content > p {
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.candidate-card-heading h3 {
+    font-size: 19px;
+    line-height: 1.25;
+    margin-top: 6px;
+}
+
+.candidate-card-content > p {
+    margin-top: 10px;
+}
+
+.candidate-card-footer {
+    align-items: flex-end;
+    border-top: 1px solid var(--border);
+    display: flex;
+    font-size: 11px;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.candidate-card-footer span {
+    color: var(--text-soft);
+}
+
+.candidate-card-footer strong {
+    color: var(--primary);
+    text-align: right;
+}
+
+.candidate-profile-number {
+    align-items: center;
+    background: var(--primary);
+    border-radius: 16px;
+    color: #ffffff;
+    display: flex;
+    flex-shrink: 0;
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 850;
+    height: 230px;
+    justify-content: center;
+    width: 230px;
+}
+
+.candidate-profile-photo {
+    display: block;
+}
+
+@media (max-width: 960px) {
+    .candidate-search {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .candidate-search {
+        grid-template-columns: 1fr;
+    }
+
+    .candidate-name-field {
+        grid-column: auto;
+    }
+
+    .candidate-profile-number {
+        height: 150px;
+        width: 100%;
+    }
+
+    .candidate-profile-photo {
+        width: 100%;
+    }
 }
 
 .status-page {

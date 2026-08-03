@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.ballot_name }} | Candidate Profile{% endblock %}
+{% block meta_description %}Official electoral profile for {{ candidate.ballot_name }} in the {{ candidate.election_year }} election.{% endblock %}
+
+{% block content %}
+<section class="page-container politician-detail-page">
+    <a class="back-link" href="{% url 'politicians:candidates' %}">&larr; Back to candidates</a>
+
+    <header class="profile-header candidate-profile-header">
+        <img
+            class="profile-photo candidate-profile-photo"
+            src="{% url 'politicians:candidate_photo' candidate.tse_candidate_id %}"
+            alt="Official electoral portrait of {{ candidate.ballot_name }}"
+        >
+        <div class="profile-main-information">
+            <span class="eyebrow-dark">{{ candidate.office }} · {{ candidate.election_year }}</span>
+            <h1>{{ candidate.ballot_name|default:candidate.name }}</h1>
+            <p class="profile-party">
+                {{ candidate.party }} ·
+                {{ candidate.municipality.name|default:"São Paulo" }} ·
+                Ballot number {{ candidate.candidate_number }}
+            </p>
+            {% if candidate.ballot_name != candidate.name %}<p class="senator-civil-name">{{ candidate.name }}</p>{% endif %}
+            <div class="profile-actions">
+                <a class="primary-action" href="{{ candidate.source_url }}" target="_blank" rel="noopener noreferrer">Official TSE dataset</a>
+                {% if candidate.has_government_proposal %}
+                    <a
+                        class="secondary-action"
+                        href="{% url 'politicians:candidate_proposal' candidate.tse_candidate_id %}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Government proposal (PDF)
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <section class="profile-details">
+        <div class="profile-section-heading"><span>Electoral record</span><h2>Candidacy and result</h2></div>
+        <div class="information-grid">
+            <div class="information-card"><span class="information-label">Candidacy status</span><strong>{{ candidate.candidacy_status|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Election result</span><strong>{{ candidate.result_status|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Election</span><strong>{{ candidate.election_description }}</strong></div>
+            <div class="information-card"><span class="information-label">Date and round</span><strong>{{ candidate.election_date|date:"d/m/Y" }} · round {{ candidate.election_round }}</strong></div>
+            <div class="information-card"><span class="information-label">Coalition</span><strong>{{ candidate.coalition_name|default:candidate.party_name|default:candidate.party }}</strong></div>
+            <div class="information-card"><span class="information-label">Federation</span><strong>{{ candidate.federation_name|default:"Not applicable" }}</strong></div>
+        </div>
+    </section>
+
+    <section class="profile-details">
+        <div class="profile-section-heading"><span>Candidate profile</span><h2>Personal information declared to the TSE</h2></div>
+        <div class="information-grid">
+            <div class="information-card"><span class="information-label">Occupation</span><strong>{{ candidate.occupation|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Education</span><strong>{{ candidate.education|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Birth date</span><strong>{{ candidate.birth_date|date:"d/m/Y"|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Gender</span><strong>{{ candidate.gender|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Race/color</span><strong>{{ candidate.race|default:"Not available" }}</strong></div>
+            <div class="information-card"><span class="information-label">Marital status</span><strong>{{ candidate.marital_status|default:"Not available" }}</strong></div>
+        </div>
+    </section>
+
+    <section class="expenses-section">
+        <div class="profile-section-heading">
+            <span>Candidate declaration</span>
+            <h2>Declared assets</h2>
+        </div>
+        {% if candidate.assets_imported_at %}
+            <div class="expense-summary">
+                <div class="expense-total-card">
+                    <span class="information-label">Total declared</span>
+                    <strong>{{ candidate.formatted_declared_assets_total }}</strong>
+                    <p>
+                        {{ candidate.declared_assets_count }} declared
+                        item{{ candidate.declared_assets_count|pluralize }}.
+                    </p>
+                </div>
+                <div class="expense-categories">
+                    <h3>Main asset types</h3>
+                    {% for category in candidate.asset_categories %}
+                        <div class="expense-category">
+                            <span>{{ category.name }}</span>
+                            <strong>{{ category.formatted_amount }}</strong>
+                        </div>
+                    {% empty %}
+                        <p class="no-expenses-message">
+                            No declared asset records.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="expense-disclaimer">
+                Values were declared by the candidate to the Electoral
+                Court and are not an independent valuation of the assets.
+            </p>
+        {% else %}
+            <p class="no-expenses-message">
+                Asset data has not been synchronized yet.
+            </p>
+        {% endif %}
+    </section>
+
+    <section class="expenses-section">
+        <div class="profile-section-heading">
+            <span>Campaign accounts</span>
+            <h2>Electoral revenue</h2>
+        </div>
+        {% if candidate.revenue_imported_at %}
+            <div class="expense-summary">
+                <div class="expense-total-card">
+                    <span class="information-label">Total revenue</span>
+                    <strong>{{ candidate.formatted_campaign_revenue_total }}</strong>
+                    <p>
+                        {{ candidate.campaign_revenue_count }} revenue
+                        record{{ candidate.campaign_revenue_count|pluralize }}.
+                    </p>
+                </div>
+                <div class="expense-categories">
+                    <h3>Main revenue origins</h3>
+                    {% for category in candidate.revenue_categories %}
+                        <div class="expense-category">
+                            <span>{{ category.name }}</span>
+                            <strong>{{ category.formatted_amount }}</strong>
+                        </div>
+                    {% empty %}
+                        <p class="no-expenses-message">
+                            No individual revenue records.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="expense-disclaimer">
+                These values refer to electoral campaign revenue declared
+                to the TSE, not income received from holding public office.
+            </p>
+        {% else %}
+            <p class="no-expenses-message">
+                Campaign revenue has not been synchronized yet.
+            </p>
+        {% endif %}
+    </section>
+
+    <section class="expenses-section">
+        <div class="profile-section-heading">
+            <span>Campaign accounts</span>
+            <h2>Contracted electoral expenses</h2>
+        </div>
+        {% if candidate.expenses_imported_at %}
+            <div class="expense-summary">
+                <div class="expense-total-card">
+                    <span class="information-label">Total contracted</span>
+                    <strong>{{ candidate.formatted_campaign_expense_total }}</strong>
+                    <p>
+                        {{ candidate.campaign_expense_count }} expense
+                        record{{ candidate.campaign_expense_count|pluralize }}.
+                    </p>
+                </div>
+                <div class="expense-categories">
+                    <h3>Main expense types</h3>
+                    {% for category in candidate.expense_categories %}
+                        <div class="expense-category">
+                            <span>{{ category.name }}</span>
+                            <strong>{{ category.formatted_amount }}</strong>
+                        </div>
+                    {% empty %}
+                        <p class="no-expenses-message">
+                            No individual expense records.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="expense-disclaimer">
+                These are campaign expenses contracted and declared to the
+                TSE. They are not public spending by an elected officeholder.
+            </p>
+        {% else %}
+            <p class="no-expenses-message">
+                Campaign expenses have not been synchronized yet.
+            </p>
+        {% endif %}
+    </section>
+
+    <p class="expense-disclaimer">
+        This page represents a candidacy in a specific election. It does not
+        state that the person currently holds public office.
+    </p>
+</section>
+{% endblock %}

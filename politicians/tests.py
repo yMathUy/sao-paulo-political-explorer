@@ -17,12 +17,16 @@ from .services.senate_api import (
     parse_senator_votes,
     summarize_senator_expenses,
 )
-from .models import Municipality, MunicipalOfficeholder
+from .models import Candidate, Municipality, MunicipalOfficeholder
 from .services.ibge_api import normalize_municipalities
 from .services.tse_candidates import (
+    candidate_archive_url,
     parse_elected_municipal_officeholders,
+    parse_sao_paulo_candidates,
 )
+from .services.tse_photos import TSEPhotoError
 from .services.tse_finances import summarize_candidate_rows
+from .services.tse_finances import assets_archive_url
 
 
 class SharedTemplateArchitectureTests(SimpleTestCase):
@@ -39,6 +43,8 @@ class SharedTemplateArchitectureTests(SimpleTestCase):
             "politicians/state_officeholder_detail.html",
             "politicians/municipalities_list.html",
             "politicians/municipality_detail.html",
+            "politicians/candidates_list.html",
+            "politicians/candidate_detail.html",
         ]
 
         for template_name in template_names:
@@ -511,6 +517,8 @@ class MunicipalityViewTests(TestCase):
         self.assertContains(response, "Mayor Test")
         self.assertContains(response, "Engineer")
         self.assertContains(response, "do not by themselves confirm")
+        self.assertContains(response, "/candidates/123/photo/")
+        self.assertContains(response, "Full electoral profile")
 
 
 class TSECandidateParserTests(SimpleTestCase):
@@ -564,6 +572,13 @@ class TSECandidateParserTests(SimpleTestCase):
 
 
 class TSEFinanceParserTests(SimpleTestCase):
+    def test_assets_archive_url_uses_requested_year(self):
+        self.assertEqual(
+            assets_archive_url(2026),
+            "https://cdn.tse.jus.br/estatistica/sead/odsele/"
+            "bem_candidato/bem_candidato_2026.zip",
+        )
+
     def test_summarizes_only_selected_candidates_by_category(self):
         rows = [
             {
@@ -597,3 +612,176 @@ class TSEFinanceParserTests(SimpleTestCase):
             "R$ 1.500,00",
         )
         self.assertNotIn(20, summaries)
+
+
+class TSECandidateDirectoryParserTests(SimpleTestCase):
+    def test_candidate_archive_url_uses_requested_year(self):
+        self.assertEqual(
+            candidate_archive_url(2026),
+            "https://cdn.tse.jus.br/estatistica/sead/odsele/"
+            "consulta_cand/consulta_cand_2026.zip",
+        )
+
+    def test_parses_electoral_status_and_identity(self):
+        candidates = parse_sao_paulo_candidates(
+            [
+                {
+                    "SG_UF": "SP",
+                    "SG_UE": "71072",
+                    "NM_UE": "SÃO PAULO",
+                    "SQ_CANDIDATO": "250001900001",
+                    "ANO_ELEICAO": "2024",
+                    "DT_ELEICAO": "06/10/2024",
+                    "NM_TIPO_ELEICAO": "ELEIÇÃO ORDINÁRIA",
+                    "DS_ELEICAO": "ELEIÇÕES MUNICIPAIS 2024",
+                    "NR_TURNO": "1",
+                    "DS_CARGO": "VEREADOR",
+                    "NR_CANDIDATO": "12345",
+                    "NM_CANDIDATO": "TEST CANDIDATE",
+                    "NM_URNA_CANDIDATO": "TEST",
+                    "NM_SOCIAL_CANDIDATO": "#NULO",
+                    "SG_PARTIDO": "ABC",
+                    "NM_PARTIDO": "TEST PARTY",
+                    "DS_SITUACAO_CANDIDATURA": "APTO",
+                    "DS_SIT_TOT_TURNO": "SUPLENTE",
+                }
+            ]
+        )
+
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["office"], "Vereador")
+        self.assertEqual(candidates[0]["candidacy_status"], "Apto")
+        self.assertEqual(candidates[0]["result_status"], "Suplente")
+
+    def test_hides_tse_not_established_marker(self):
+        candidates = parse_sao_paulo_candidates(
+            [
+                {
+                    "SG_UF": "SP",
+                    "SQ_CANDIDATO": "250002500001",
+                    "ANO_ELEICAO": "2026",
+                    "DT_ELEICAO": "04/10/2026",
+                    "NR_TURNO": "1",
+                    "NR_CANDIDATO": "100",
+                    "DS_SITUACAO_CANDIDATURA": "#NE",
+                    "DS_SIT_TOT_TURNO": "#NULO",
+                }
+            ]
+        )
+
+        self.assertEqual(candidates[0]["candidacy_status"], "")
+        self.assertEqual(candidates[0]["result_status"], "")
+
+
+class CandidateDirectoryViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        municipality = Municipality.objects.create(
+            ibge_code=3550308,
+            name="São Paulo",
+            slug="sao-paulo-3550308",
+        )
+        Candidate.objects.create(
+            tse_candidate_id=250001900001,
+            municipality=municipality,
+            tse_municipality_code="71072",
+            election_year=2024,
+            election_date="2024-10-06",
+            election_type="Ordinary Election",
+            election_description="Municipal Elections 2024",
+            office="Vereador",
+            candidate_number=12345,
+            name="Test Candidate",
+            ballot_name="Test",
+            party="ABC",
+            candidacy_status="Apto",
+            result_status="Suplente",
+            source_url="https://dadosabertos.tse.jus.br/",
+        )
+
+    def test_filters_candidates_by_name_and_office(self):
+        response = self.client.get(
+            reverse("politicians:candidates"),
+            {"name": "Test", "office": "Vereador"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test")
+        self.assertContains(response, "Suplente")
+        self.assertContains(
+            response,
+            "/candidates/250001900001/photo/",
+        )
+        self.assertContains(response, 'loading="lazy"')
+
+    def test_candidate_detail_explains_electoral_scope(self):
+        response = self.client.get(
+            reverse(
+                "politicians:candidate_detail",
+                kwargs={"candidate_id": 250001900001},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Municipal Elections 2024")
+        self.assertContains(response, "currently holds public office")
+        self.assertContains(response, "Ballot number 12345")
+
+    @patch("politicians.views.get_candidate_photo")
+    def test_candidate_photo_proxy_returns_official_image(
+        self,
+        mocked_photo,
+    ):
+        mocked_photo.return_value = b"jpeg-data"
+
+        response = self.client.get(
+            reverse(
+                "politicians:candidate_photo",
+                kwargs={"candidate_id": 250001900001},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(response.content, b"jpeg-data")
+        self.assertEqual(response["X-Photo-Source"], "tse")
+
+    @patch("politicians.views.get_candidate_photo")
+    def test_candidate_photo_uses_avatar_fallback(
+        self,
+        mocked_photo,
+    ):
+        mocked_photo.side_effect = TSEPhotoError("unavailable")
+
+        response = self.client.get(
+            reverse(
+                "politicians:candidate_photo",
+                kwargs={"candidate_id": 250001900001},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/svg+xml")
+        self.assertEqual(response["X-Photo-Source"], "placeholder")
+        self.assertContains(response, "Photo unavailable")
+
+    @patch("politicians.views.get_candidate_proposal")
+    def test_candidate_proposal_returns_official_pdf(
+        self,
+        mocked_proposal,
+    ):
+        Candidate.objects.filter(
+            tse_candidate_id=250001900001
+        ).update(has_government_proposal=True)
+        mocked_proposal.return_value = b"%PDF-test"
+
+        response = self.client.get(
+            reverse(
+                "politicians:candidate_proposal",
+                kwargs={"candidate_id": 250001900001},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(response.content, b"%PDF-test")

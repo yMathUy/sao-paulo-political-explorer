@@ -124,7 +124,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "political-explorer-cache",
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / ".cache" / "django",
+        "TIMEOUT": 60 * 60,
+        "OPTIONS": {
+            "MAX_ENTRIES": 5000,
+            "CULL_FREQUENCY": 4,
+        },
     }
 }

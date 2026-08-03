@@ -1,10 +1,11 @@
 from datetime import date
 
 from django.core.paginator import Paginator
-from django.http import Http404
+from django.db.models import Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 
-from .models import DeputyVote, Municipality
+from .models import Candidate, DeputyVote, Municipality
 from .services.chamber_api import (
     ChamberAPIError,
     get_deputy_by_id,
@@ -27,6 +28,16 @@ from .services.senate_api import (
 from .services.state_government import (
     get_current_state_executive,
     get_state_officeholder,
+)
+from .services.tse_photos import (
+    PHOTO_FALLBACK_CACHE_TIMEOUT,
+    PHOTO_PLACEHOLDER_SVG,
+    TSEPhotoError,
+    get_candidate_photo,
+)
+from .services.tse_proposals import (
+    TSEProposalError,
+    get_candidate_proposal,
 )
 
 
@@ -402,3 +413,148 @@ def municipality_detail(request, slug):
             "vice_mayor": municipality.vice_mayor,
         },
     )
+
+
+def candidates_list(request):
+    searched_name = request.GET.get("name", "").strip()
+    selected_year = request.GET.get("year", "").strip()
+    selected_office = request.GET.get("office", "").strip()
+    selected_party = request.GET.get("party", "").strip().upper()
+    selected_municipality = request.GET.get(
+        "municipality", ""
+    ).strip()
+    selected_status = request.GET.get("status", "").strip()
+
+    candidates = Candidate.objects.select_related("municipality")
+    if searched_name:
+        candidates = candidates.filter(
+            Q(ballot_name__icontains=searched_name)
+            | Q(name__icontains=searched_name)
+            | Q(social_name__icontains=searched_name)
+        )
+    if selected_year:
+        candidates = candidates.filter(election_year=selected_year)
+    if selected_office:
+        candidates = candidates.filter(office=selected_office)
+    if selected_party:
+        candidates = candidates.filter(party=selected_party)
+    if selected_municipality:
+        candidates = candidates.filter(
+            municipality__slug=selected_municipality
+        )
+    if selected_status:
+        candidates = candidates.filter(result_status=selected_status)
+
+    options = Candidate.objects.all()
+    years = options.order_by("-election_year").values_list(
+        "election_year", flat=True
+    ).distinct()
+    offices = options.order_by("office").values_list(
+        "office", flat=True
+    ).distinct()
+    parties = options.order_by("party").values_list(
+        "party", flat=True
+    ).distinct()
+    statuses = (
+        options.exclude(result_status="")
+        .order_by("result_status")
+        .values_list("result_status", flat=True)
+        .distinct()
+    )
+
+    paginator = Paginator(candidates, 24)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(
+        request,
+        "politicians/candidates_list.html",
+        {
+            "page_obj": page_obj,
+            "results_count": candidates.count(),
+            "searched_name": searched_name,
+            "selected_year": selected_year,
+            "selected_office": selected_office,
+            "selected_party": selected_party,
+            "selected_municipality": selected_municipality,
+            "selected_status": selected_status,
+            "years": years,
+            "offices": offices,
+            "parties": parties,
+            "statuses": statuses,
+            "municipalities": Municipality.objects.all(),
+            "candidates_available": Candidate.objects.exists(),
+        },
+    )
+
+
+def candidate_detail(request, candidate_id):
+    try:
+        candidate = Candidate.objects.select_related(
+            "municipality"
+        ).get(tse_candidate_id=candidate_id)
+    except Candidate.DoesNotExist as error:
+        raise Http404("Candidate not found.") from error
+
+    return render(
+        request,
+        "politicians/candidate_detail.html",
+        {"candidate": candidate},
+    )
+
+
+def candidate_photo(request, candidate_id):
+    candidate = Candidate.objects.filter(
+        tse_candidate_id=candidate_id
+    ).only("election_year").first()
+    if not candidate:
+        raise Http404("Candidate not found.")
+
+    try:
+        photo = get_candidate_photo(
+            candidate_id,
+            candidate.election_year,
+        )
+    except TSEPhotoError:
+        response = HttpResponse(
+            PHOTO_PLACEHOLDER_SVG,
+            content_type="image/svg+xml",
+        )
+        response["Cache-Control"] = (
+            f"public, max-age={PHOTO_FALLBACK_CACHE_TIMEOUT}"
+        )
+        response["X-Photo-Source"] = "placeholder"
+        return response
+
+    response = HttpResponse(photo, content_type="image/jpeg")
+    response["Cache-Control"] = "public, max-age=604800"
+    response["X-Photo-Source"] = "tse"
+    return response
+
+
+def candidate_proposal(request, candidate_id):
+    try:
+        candidate = Candidate.objects.only(
+            "tse_candidate_id",
+            "election_year",
+            "has_government_proposal",
+        ).get(tse_candidate_id=candidate_id)
+    except Candidate.DoesNotExist as error:
+        raise Http404("Candidate not found.") from error
+
+    if not candidate.has_government_proposal:
+        raise Http404("Government proposal not found.")
+
+    try:
+        proposal = get_candidate_proposal(
+            candidate.tse_candidate_id,
+            candidate.election_year,
+        )
+    except TSEProposalError as error:
+        raise Http404("Government proposal unavailable.") from error
+
+    response = HttpResponse(proposal, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'inline; filename="proposal-{candidate_id}.pdf"'
+    )
+    response["Cache-Control"] = "public, max-age=86400"
+    return response

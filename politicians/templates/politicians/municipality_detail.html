@@ -25,82 +25,77 @@
         occupies the office after resignations, removals or succession.
     </div>
 
-    <section class="municipal-officeholders-grid">
+    <section class="municipal-officeholders-list">
         {% for officeholder in municipality.officeholders.all %}
-            <article class="municipal-officeholder-card">
-                <div class="municipal-officeholder-heading">
-                    <div>
+            <article class="municipal-officeholder-profile">
+                <header class="profile-header municipal-officeholder-profile-header">
+                    <img
+                        class="profile-photo"
+                        src="{% url 'politicians:candidate_photo' officeholder.tse_candidate_id %}"
+                        alt="Official electoral portrait of {{ officeholder.ballot_name|default:officeholder.name }}"
+                    >
+                    <div class="profile-main-information">
                         <span class="eyebrow-dark">
                             {{ officeholder.get_role_display }}
                         </span>
                         <h2>
                             {{ officeholder.ballot_name|default:officeholder.name }}
                         </h2>
+                        <p class="profile-party">
+                            {{ officeholder.party }} · {{ municipality.name }}
+                        </p>
                         {% if officeholder.ballot_name and officeholder.ballot_name != officeholder.name %}
-                            <p>{{ officeholder.name }}</p>
+                            <p class="senator-civil-name">{{ officeholder.name }}</p>
                         {% endif %}
+                        <div class="profile-actions">
+                            <a
+                                class="primary-action"
+                                href="{% url 'politicians:candidate_detail' officeholder.tse_candidate_id %}"
+                            >
+                                Full electoral profile
+                            </a>
+                            <a
+                                class="secondary-action"
+                                href="{{ officeholder.source_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Official TSE dataset
+                            </a>
+                        </div>
                     </div>
-                    <span class="party-badge">{{ officeholder.party }}</span>
-                </div>
+                </header>
 
-                <dl class="municipal-profile-grid">
-                    <div>
-                        <dt>Occupation</dt>
-                        <dd>{{ officeholder.occupation|default:"Not available" }}</dd>
+                <section class="profile-details">
+                    <div class="profile-section-heading">
+                        <span>Candidate profile</span>
+                        <h2>Personal information declared to the TSE</h2>
                     </div>
-                    <div>
-                        <dt>Education</dt>
-                        <dd>{{ officeholder.education|default:"Not available" }}</dd>
+                    <div class="information-grid">
+                        <div class="information-card"><span class="information-label">Occupation</span><strong>{{ officeholder.occupation|default:"Not available" }}</strong></div>
+                        <div class="information-card"><span class="information-label">Education</span><strong>{{ officeholder.education|default:"Not available" }}</strong></div>
+                        <div class="information-card"><span class="information-label">Birth date</span><strong>{{ officeholder.birth_date|date:"d/m/Y"|default:"Not available" }}</strong></div>
+                        <div class="information-card"><span class="information-label">Gender</span><strong>{{ officeholder.gender|default:"Not available" }}</strong></div>
+                        <div class="information-card"><span class="information-label">Race/color</span><strong>{{ officeholder.race|default:"Not available" }}</strong></div>
+                        <div class="information-card"><span class="information-label">Marital status</span><strong>{{ officeholder.marital_status|default:"Not available" }}</strong></div>
                     </div>
-                    <div>
-                        <dt>Birth date</dt>
-                        <dd>{{ officeholder.birth_date|date:"d/m/Y"|default:"Not available" }}</dd>
-                    </div>
-                    <div>
-                        <dt>Gender</dt>
-                        <dd>{{ officeholder.gender|default:"Not available" }}</dd>
-                    </div>
-                    <div>
-                        <dt>Race/color</dt>
-                        <dd>{{ officeholder.race|default:"Not available" }}</dd>
-                    </div>
-                    <div>
-                        <dt>Marital status</dt>
-                        <dd>{{ officeholder.marital_status|default:"Not available" }}</dd>
-                    </div>
-                </dl>
+                </section>
 
-                <div class="municipal-election-box">
-                    <div>
-                        <span>Election</span>
-                        <strong>{{ officeholder.election_type }}</strong>
+                <section class="profile-details">
+                    <div class="profile-section-heading">
+                        <span>Electoral record</span>
+                        <h2>Election and ticket</h2>
                     </div>
-                    <div>
-                        <span>Date and round</span>
-                        <strong>
-                            {{ officeholder.election_date|date:"d/m/Y" }}
-                            · round {{ officeholder.election_round }}
-                        </strong>
+                    <div class="information-grid">
+                        <div class="information-card"><span class="information-label">Election</span><strong>{{ officeholder.election_type }}</strong></div>
+                        <div class="information-card"><span class="information-label">Date and round</span><strong>{{ officeholder.election_date|date:"d/m/Y" }} · round {{ officeholder.election_round }}</strong></div>
+                        <div class="information-card">
+                            <span class="information-label">Coalition</span>
+                            <strong>{{ officeholder.coalition_name|default:officeholder.party_name|default:officeholder.party }}</strong>
+                            {% if officeholder.coalition_composition %}<small>{{ officeholder.coalition_composition }}</small>{% endif %}
+                        </div>
                     </div>
-                    <div>
-                        <span>Coalition</span>
-                        <strong>
-                            {{ officeholder.coalition_name|default:officeholder.party_name }}
-                        </strong>
-                        {% if officeholder.coalition_composition %}
-                            <small>{{ officeholder.coalition_composition }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <a
-                    class="secondary-action"
-                    href="{{ officeholder.source_url }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    View official TSE dataset
-                </a>
+                </section>
             </article>
         {% empty %}
             <div class="empty-state">

@@ -3,5 +3,5 @@
     <a class="category-button category-link {% if active_category == 'senators' %}active{% endif %}" href="{% url 'politicians:senators' %}">Senators</a>
     <a class="category-button category-link {% if active_category == 'governor' %}active{% endif %}" href="{% url 'politicians:state_executive' %}">Governor</a>
     <a class="category-button category-link {% if active_category == 'mayors' %}active{% endif %}" href="{% url 'politicians:municipalities' %}">Mayors</a>
-    <span class="category-button disabled" aria-disabled="true">Candidates</span>
+    <a class="category-button category-link {% if active_category == 'candidates' %}active{% endif %}" href="{% url 'politicians:candidates' %}">Candidates</a>
 </div>
